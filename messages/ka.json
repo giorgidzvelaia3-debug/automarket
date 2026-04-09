@@ -1,0 +1,44 @@
+{
+  "Nav": {
+    "categories": "კატეგორიები",
+    "vendors": "გამყიდველები",
+    "signIn": "შესვლა",
+    "register": "რეგისტრაცია",
+    "myShop": "ჩემი მაღაზია",
+    "account": "ანგარიში"
+  },
+  "Home": {
+    "heroTitle": "ავტო ნაწილები და აქსესუარები",
+    "heroSubtitle": "იპოვეთ ხარისხიანი ნაწილები სანდო გამყიდველებისგან საქართველოში.",
+    "searchPlaceholder": "მოძებნეთ ნაწილები, ბრენდები, გამყიდველები…",
+    "browseCategories": "კატეგორიები",
+    "featuredVendors": "რჩეული გამყიდველები",
+    "viewAll": "ყველა",
+    "products": "{count} პროდუქტი",
+    "noContent": "კონტენტი არ არის. მალე დაბრუნდით."
+  },
+  "Product": {
+    "soldBy": "გამყიდველი",
+    "visitShop": "მაღაზიაში გადასვლა",
+    "outOfStock": "არ არის მარაგში",
+    "inStock": "მარაგშია ({count})",
+    "description": "აღწერა",
+    "category": "კატეგორია"
+  },
+  "Auth": {
+    "appName": "AutoMarket",
+    "signInTitle": "შედით თქვენს ანგარიშში",
+    "registerTitle": "შექმენით ანგარიში",
+    "email": "ელ. ფოსტა",
+    "password": "პაროლი",
+    "name": "სახელი და გვარი",
+    "confirmPassword": "გაიმეორეთ პაროლი",
+    "submitSignIn": "შესვლა",
+    "submitRegister": "ანგარიშის შექმნა",
+    "noAccount": "ანგარიში არ გაქვთ?",
+    "haveAccount": "უკვე გაქვთ ანგარიში?",
+    "registerLink": "რეგისტრაცია",
+    "signInLink": "შესვლა",
+    "successRegistered": "ანგარიში შეიქმნა! ახლა შეგიძლიათ შეხვიდეთ."
+  }
+}

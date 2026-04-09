@@ -1,0 +1,44 @@
+{
+  "Nav": {
+    "categories": "Categories",
+    "vendors": "Vendors",
+    "signIn": "Sign in",
+    "register": "Register",
+    "myShop": "My Shop",
+    "account": "Account"
+  },
+  "Home": {
+    "heroTitle": "Auto Parts & Accessories",
+    "heroSubtitle": "Find quality parts from trusted vendors across Georgia.",
+    "searchPlaceholder": "Search parts, brands, vendors…",
+    "browseCategories": "Browse Categories",
+    "featuredVendors": "Featured Vendors",
+    "viewAll": "View all",
+    "products": "{count, plural, =1 {# product} other {# products}}",
+    "noContent": "No content yet. Check back soon."
+  },
+  "Product": {
+    "soldBy": "Sold by",
+    "visitShop": "Visit Shop",
+    "outOfStock": "Out of stock",
+    "inStock": "{count} in stock",
+    "description": "Description",
+    "category": "Category"
+  },
+  "Auth": {
+    "appName": "AutoMarket",
+    "signInTitle": "Sign in to your account",
+    "registerTitle": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "confirmPassword": "Confirm password",
+    "submitSignIn": "Sign in",
+    "submitRegister": "Create account",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "registerLink": "Register",
+    "signInLink": "Sign in",
+    "successRegistered": "Account created! You can now sign in."
+  }
+}
