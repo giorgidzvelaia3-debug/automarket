@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useLocale, useTranslations } from "next-intl"
 import { StarDisplay } from "@/components/store/StarRating"
 import ReviewForm from "./ReviewForm"
 
@@ -35,8 +36,15 @@ export default function ProductTabs({
   currentUserId: string | null
   existingReview?: { rating: number; comment: string | null }
 }) {
+  const locale = useLocale()
+  const t = useTranslations("Product")
   const [activeTab, setActiveTab] = useState<"description" | "reviews">("description")
   const reviewCount = totalReviewCount
+
+  // Pick description for current locale, fall back to the other
+  const displayDescription = locale === "ka"
+    ? (description || descriptionEn)
+    : (descriptionEn || description)
 
   return (
     <div id="reviews" className="scroll-mt-24">
@@ -52,7 +60,7 @@ export default function ProductTabs({
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            Description
+            {t("description")}
             {activeTab === "description" && (
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t" />
             )}
@@ -66,7 +74,7 @@ export default function ProductTabs({
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            Reviews
+            {t("reviews")}
             {reviewCount > 0 && (
               <span className={`ml-1.5 text-xs font-normal ${
                 activeTab === "reviews" ? "text-blue-400" : "text-gray-400"
@@ -86,23 +94,10 @@ export default function ProductTabs({
         {/* ─── Description Tab ──────────────────────────────────── */}
         {activeTab === "description" && (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            {descriptionEn || description ? (
-              <div className="space-y-4">
-                {descriptionEn && (
-                  <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">English</p>
-                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{descriptionEn}</p>
-                  </div>
-                )}
-                {description && (
-                  <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">ქართული</p>
-                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{description}</p>
-                  </div>
-                )}
-              </div>
+            {displayDescription ? (
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{displayDescription}</p>
             ) : (
-              <p className="text-sm text-gray-400 text-center py-8">No description available.</p>
+              <p className="text-sm text-gray-400 text-center py-8">{t("noDescription")}</p>
             )}
           </div>
         )}
@@ -121,7 +116,7 @@ export default function ProductTabs({
                       <StarDisplay rating={avgRating} size="sm" />
                     </div>
                     <p className="text-xs text-gray-400 mt-1.5">
-                      {reviewCount} review{reviewCount !== 1 ? "s" : ""}
+                      {reviewCount} {t("reviewsCount")}
                     </p>
                   </div>
                   <div className="flex-1 w-full space-y-2">
@@ -152,8 +147,8 @@ export default function ProductTabs({
               {reviewCount === 0 ? (
                 <div className="py-12 text-center">
                   <p className="text-3xl mb-3">★</p>
-                  <p className="text-sm font-medium text-gray-900 mb-1">No reviews yet</p>
-                  <p className="text-xs text-gray-400">Be the first to share your experience!</p>
+                  <p className="text-sm font-medium text-gray-900 mb-1">{t("noReviews")}</p>
+                  <p className="text-xs text-gray-400">{t("beFirstReview")}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -171,7 +166,7 @@ export default function ProductTabs({
                                 <p className="text-sm font-semibold text-gray-900">
                                   {review.userName}
                                   {review.userId === currentUserId && (
-                                    <span className="ml-1.5 text-xs text-blue-500 font-normal">(you)</span>
+                                    <span className="ml-1.5 text-xs text-blue-500 font-normal">({t("you")})</span>
                                   )}
                                 </p>
                                 <p className="text-xs text-gray-400">{review.createdAt}</p>
@@ -195,7 +190,7 @@ export default function ProductTabs({
               {currentUserId ? (
                 <div className="bg-white rounded-xl border border-gray-200 p-5 lg:sticky lg:top-24">
                   <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                    {existingReview ? "Edit your review" : "Write a review"}
+                    {existingReview ? t("editReview") : t("writeReview")}
                   </h3>
                   <ReviewForm
                     productId={productId}
@@ -204,12 +199,12 @@ export default function ProductTabs({
                 </div>
               ) : (
                 <div className="bg-gray-50 rounded-xl border border-gray-200 p-6 text-center">
-                  <p className="text-sm text-gray-500 mb-3">Sign in to leave a review</p>
+                  <p className="text-sm text-gray-500 mb-3">{t("signInToReview")}</p>
                   <Link
                     href="/login"
                     className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                   >
-                    Sign in
+                    {t("signIn")}
                   </Link>
                 </div>
               )}

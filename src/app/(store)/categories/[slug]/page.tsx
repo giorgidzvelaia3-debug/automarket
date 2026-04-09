@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { getLocale } from "next-intl/server"
+import { localized } from "@/lib/localeName"
 import { prisma } from "@/lib/prisma"
 import ProductGrid from "@/components/store/ProductGrid"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
@@ -16,7 +18,7 @@ export async function generateMetadata(props: {
 
   if (!category) return { title: "Category Not Found" }
 
-  const title = `${category.nameEn} — ${category.name} | AutoMarket`
+  const title = `${category.nameEn} | AutoMarket`
   const description = `Browse ${category.nameEn} auto parts on AutoMarket`
 
   return { title, description, openGraph: { title, description } }
@@ -55,6 +57,7 @@ export default async function CategoryPage(props: {
 
   if (!category) notFound()
 
+  const locale = await getLocale()
   const flashSaleMap = await getFlashSalesForProducts(category.products.map((p) => p.id))
 
   return (
@@ -64,8 +67,7 @@ export default async function CategoryPage(props: {
         <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
           ← Home
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-gray-900">{category.name}</h1>
-        <p className="mt-0.5 text-sm text-gray-500">{category.nameEn}</p>
+        <h1 className="mt-2 text-2xl font-bold text-gray-900">{localized(locale, category.name, category.nameEn)}</h1>
         <p className="mt-1 text-xs text-gray-400">
           {category.products.length}{" "}
           {category.products.length === 1 ? "product" : "products"}

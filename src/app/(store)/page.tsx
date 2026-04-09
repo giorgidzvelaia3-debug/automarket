@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
+import { localized } from "@/lib/localeName"
 import { prisma } from "@/lib/prisma"
 import SearchBar from "@/components/store/SearchBar"
 import { StarDisplay } from "@/components/store/StarRating"
@@ -9,7 +10,7 @@ import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
 
 export default async function HomePage() {
   const now = new Date()
-  const [categories, vendors, featuredProducts, flashSales, t] = await Promise.all([
+  const [categories, vendors, featuredProducts, flashSales, t, locale] = await Promise.all([
     prisma.category.findMany({
       orderBy: { nameEn: "asc" },
       select: { id: true, slug: true, nameEn: true, name: true },
@@ -67,6 +68,7 @@ export default async function HomePage() {
       },
     }),
     getTranslations("Home"),
+    getLocale(),
   ])
 
   const flashSaleMap = await getFlashSalesForProducts(featuredProducts.map((p) => p.id))
@@ -120,8 +122,7 @@ export default async function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </div>
-                  <p className="text-xs font-medium text-gray-800 leading-snug">{cat.nameEn}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{cat.name}</p>
+                  <p className="text-xs font-medium text-gray-800 leading-snug">{localized(locale, cat.name, cat.nameEn)}</p>
                 </Link>
               ))}
             </div>

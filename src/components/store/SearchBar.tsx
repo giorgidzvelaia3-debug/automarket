@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useLocale } from "next-intl"
+import { localized } from "@/lib/localeName"
 import { optimizeImageUrl } from "@/lib/imageUtils"
 
 type Suggestion = {
@@ -22,6 +24,7 @@ export default function SearchBar({
   placeholder?: string
   className?: string
 }) {
+  const locale = useLocale()
   const [query, setQuery] = useState(defaultValue)
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [open, setOpen] = useState(false)
@@ -122,8 +125,7 @@ export default function SearchBar({
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 truncate">{s.name}</p>
-                    <p className="text-xs text-gray-400 truncate">{s.nameEn}</p>
+                    <p className="text-sm text-gray-900 truncate">{localized(locale, s.name, s.nameEn)}</p>
                   </div>
                   <span className="text-xs font-semibold text-gray-700 shrink-0">
                     ₾{s.price.toFixed(2)}

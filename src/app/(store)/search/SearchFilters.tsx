@@ -1,5 +1,7 @@
 "use client"
 
+import { useLocale } from "next-intl"
+import { localized } from "@/lib/localeName"
 import { useRouter } from "next/navigation"
 import { useCallback } from "react"
 
@@ -22,6 +24,7 @@ export default function SearchFilters({
   categories: Category[]
   currentParams: Params
 }) {
+  const locale = useLocale()
   const router = useRouter()
 
   const buildUrl = useCallback(
@@ -85,7 +88,7 @@ export default function SearchFilters({
           <option value="">All categories</option>
           {categories.map((c) => (
             <option key={c.id} value={c.slug}>
-              {c.nameEn}
+              {localized(locale, c.name, c.nameEn)}
             </option>
           ))}
         </select>

@@ -1,7 +1,9 @@
 import Link from "next/link"
 import Image from "next/image"
+import { getLocale } from "next-intl/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { localized } from "@/lib/localeName"
 import { StarDisplay } from "@/components/store/StarRating"
 import AddToCartButton from "@/components/store/AddToCartButton"
 import CompareRemoveButton from "./CompareRemoveButton"
@@ -10,7 +12,7 @@ export default async function ComparePage(props: {
   searchParams: Promise<{ ids?: string }>
 }) {
   const { ids: idsParam } = await props.searchParams
-  const session = await auth()
+  const [session, locale] = await Promise.all([auth(), getLocale()])
   const isLoggedIn = !!session?.user?.id
 
   const ids = idsParam?.split(",").filter(Boolean).slice(0, 3) ?? []
@@ -94,8 +96,7 @@ export default async function ComparePage(props: {
       label: "Name",
       render: (p) => (
         <Link href={`/products/${p.slug}`} className="hover:text-blue-600 transition-colors">
-          <p className="text-sm font-semibold text-gray-900">{p.name}</p>
-          <p className="text-xs text-gray-400">{p.nameEn}</p>
+          <p className="text-sm font-semibold text-gray-900">{localized(locale, p.name, p.nameEn)}</p>
         </Link>
       ),
     },
@@ -108,7 +109,7 @@ export default async function ComparePage(props: {
     {
       label: "Category",
       render: (p) => (
-        <p className="text-sm text-gray-700">{p.category.nameEn} / {p.category.name}</p>
+        <p className="text-sm text-gray-700">{localized(locale, p.category.name, p.category.nameEn)}</p>
       ),
     },
     {
@@ -143,7 +144,7 @@ export default async function ComparePage(props: {
       label: "Description",
       render: (p) => (
         <p className="text-xs text-gray-600 line-clamp-4 leading-relaxed">
-          {p.descriptionEn || p.description || "—"}
+          {localized(locale, p.description, p.descriptionEn) || "—"}
         </p>
       ),
     },

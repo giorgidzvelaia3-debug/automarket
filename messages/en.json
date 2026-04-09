@@ -23,7 +23,21 @@
     "outOfStock": "Out of stock",
     "inStock": "{count} in stock",
     "description": "Description",
-    "category": "Category"
+    "category": "Category",
+    "addToCart": "Add to Cart",
+    "added": "Added",
+    "qty": "Qty",
+    "error": "Error — try again",
+    "reviews": "Reviews",
+    "reviewsCount": "reviews",
+    "noReviews": "No reviews yet",
+    "beFirstReview": "Be the first to share your experience!",
+    "noDescription": "No description available.",
+    "writeReview": "Write a review",
+    "editReview": "Edit your review",
+    "signInToReview": "Sign in to leave a review",
+    "signIn": "Sign in",
+    "you": "you"
   },
   "Auth": {
     "appName": "AutoMarket",

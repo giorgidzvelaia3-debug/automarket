@@ -1,11 +1,11 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
+import { localized } from "@/lib/localeName"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import ImageGallery from "./ImageGallery"
-import AddToCartButton from "@/components/store/AddToCartButton"
 import ProductActions from "./ProductActions"
 import ProductTabs from "./ProductTabs"
 import MessageVendorButton from "./MessageVendorButton"
@@ -13,6 +13,7 @@ import { StarDisplay } from "@/components/store/StarRating"
 import LazyProductCarousel from "@/components/store/LazyProductCarousel"
 import WishlistButton from "@/components/store/WishlistButton"
 import CompareButton from "@/components/store/CompareButton"
+import StickyMobileBar from "./StickyMobileBar"
 import { getFlashSaleByProduct, getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { isWishlisted } from "@/lib/actions/wishlist"
 // Cache removed — Neon cold start can cause null to be cached as 404
@@ -54,10 +55,11 @@ export default async function ProductPage(props: {
   params: Promise<{ slug: string }>
 }) {
   // Phase 1: Cached product + session + translations — all parallel
-  const [{ slug }, t, session] = await Promise.all([
+  const [{ slug }, t, session, locale] = await Promise.all([
     props.params,
     getTranslations("Product"),
     auth(),
+    getLocale(),
   ])
 
   // Direct query — prevents caching null/error as 404 on Neon cold start
@@ -105,7 +107,7 @@ export default async function ProductPage(props: {
     createdAt: true,
     vendorId: true,
     images: { take: 1, orderBy: { order: "asc" as const }, select: { url: true } },
-    category: { select: { nameEn: true } },
+    category: { select: { nameEn: true, name: true } },
     vendor: { select: { name: true, slug: true } },
     reviews: { select: { rating: true } },
     variants: { orderBy: { order: "asc" as const }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
@@ -174,6 +176,15 @@ export default async function ProductPage(props: {
 
   const priceNum = product.price
 
+  const productLabels = {
+    addToCart: t("addToCart"),
+    added: t("added"),
+    qty: t("qty"),
+    outOfStock: t("outOfStock"),
+    inStock: t("inStock"),
+    error: t("error"),
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
       {/* Breadcrumb */}
@@ -181,10 +192,10 @@ export default async function ProductPage(props: {
         <Link href="/" className="hover:text-gray-600 transition-colors">Home</Link>
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
         <Link href={`/categories/${product.category.slug}`} className="hover:text-gray-600 transition-colors">
-          {product.category.nameEn}
+          {localized(locale, product.category.name, product.category.nameEn)}
         </Link>
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-        <span className="text-gray-600 truncate max-w-[200px]">{product.nameEn}</span>
+        <span className="text-gray-600 truncate max-w-[200px]">{localized(locale, product.name, product.nameEn)}</span>
       </nav>
 
       {/* ─── Main 2-column layout ─────────────────────────────────── */}
@@ -201,13 +212,14 @@ export default async function ProductPage(props: {
             href={`/categories/${product.category.slug}`}
             className="inline-flex items-center rounded-full bg-blue-50 border border-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
           >
-            {product.category.nameEn}
+            {localized(locale, product.category.name, product.category.nameEn)}
           </Link>
 
           {/* Product name */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{product.name}</h1>
-            <p className="mt-1 text-sm text-gray-500">{product.nameEn}</p>
+            <h1 className="text-2xl font-bold text-gray-900 leading-tight">
+              {localized(locale, product.name, product.nameEn)}
+            </h1>
           </div>
 
           {/* Rating row — clickable anchor to #reviews */}
@@ -244,6 +256,7 @@ export default async function ProductPage(props: {
             productName={product.name}
             productNameEn={product.nameEn}
             productImage={product.images[0]?.url ?? null}
+            labels={productLabels}
           />
 
           {/* Wishlist + Compare side by side */}
@@ -354,7 +367,7 @@ export default async function ProductPage(props: {
                 price: Number(p.price),
                 stock: p.stock,
                 imageUrl: p.images[0]?.url,
-                categoryName: p.category.nameEn,
+                categoryName: localized(locale, p.category.name, p.category.nameEn),
                 vendorName: p.vendor.name,
                 vendorSlug: p.vendor.slug,
                 vendorId: p.vendorId,
@@ -391,7 +404,7 @@ export default async function ProductPage(props: {
                 price: Number(p.price),
                 stock: p.stock,
                 imageUrl: p.images[0]?.url,
-                categoryName: p.category.nameEn,
+                categoryName: localized(locale, p.category.name, p.category.nameEn),
                 vendorName: p.vendor.name,
                 vendorSlug: p.vendor.slug,
                 vendorId: p.vendorId,
@@ -407,30 +420,20 @@ export default async function ProductPage(props: {
       )}
 
       {/* ─── Sticky mobile bar ─────────────────────────────────────── */}
-      {product.stock > 0 && (
-        <div className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-white border-t border-gray-200 shadow-lg px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <div className="flex items-center gap-4 max-w-lg mx-auto">
-            <div className="shrink-0">
-              <p className="text-lg font-bold text-gray-900">₾{priceNum.toFixed(2)}</p>
-              <p className="text-[10px] text-green-600 font-medium">{product.stock} in stock</p>
-            </div>
-            <div className="flex-1">
-              <AddToCartButton
-                productId={product.id}
-                stock={product.stock}
-                isLoggedIn={!!userId}
-                vendorId={product.vendorId}
-                vendorName={product.vendor.name}
-                vendorSlug={product.vendor.slug}
-                price={priceNum}
-                name={product.name}
-                nameEn={product.nameEn}
-                image={product.images[0]?.url ?? null}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <StickyMobileBar
+        productId={product.id}
+        basePrice={activeSale ? activeSale.salePrice : priceNum}
+        baseStock={product.stock}
+        isLoggedIn={!!userId}
+        vendorId={product.vendorId}
+        vendorName={product.vendor.name}
+        vendorSlug={product.vendor.slug}
+        name={product.name}
+        nameEn={product.nameEn}
+        image={product.images[0]?.url ?? null}
+        hasFlashSale={!!activeSale}
+        labels={productLabels}
+      />
     </div>
   )
 }

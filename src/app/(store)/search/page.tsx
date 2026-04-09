@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { getLocale } from "next-intl/server"
+import { localized } from "@/lib/localeName"
 import { prisma } from "@/lib/prisma"
 import { StarDisplay } from "@/components/store/StarRating"
 import ProductGrid from "@/components/store/ProductGrid"
@@ -96,12 +98,14 @@ export default async function SearchPage(props: {
       price: true,
       stock: true,
       images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
-      category: { select: { nameEn: true } },
+      category: { select: { nameEn: true, name: true } },
       vendor: { select: { name: true, slug: true } },
       reviews: { select: { rating: true } },
       variants: { orderBy: { order: "asc" }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
     },
   })
+
+  const locale = await getLocale()
 
   // Compute avg rating for each product and apply filters
   let filtered = products.map((p) => {
@@ -233,7 +237,7 @@ export default async function SearchPage(props: {
                   price: Number(p.price),
                   stock: p.stock,
                   imageUrl: p.images[0]?.url,
-                  categoryName: p.category.nameEn,
+                  categoryName: localized(locale, p.category.name, p.category.nameEn),
                   vendorName: p.vendor.name,
                   vendorSlug: p.vendor.slug,
                   avgRating: p.reviewCount > 0 ? p.avgRating : undefined,

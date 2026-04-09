@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation"
 import { useCallback, useState } from "react"
+import { useLocale } from "next-intl"
+import { localized } from "@/lib/localeName"
 
-type Category = { slug: string; nameEn: string; count: number }
+type Category = { slug: string; nameEn: string; name: string; count: number }
 type Vendor = { slug: string; name: string; count: number }
 
 type Params = {
@@ -29,6 +31,7 @@ export default function ShopFilters({
   currentParams: Params
   mobile?: boolean
 }) {
+  const locale = useLocale()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -81,7 +84,7 @@ export default function ShopFilters({
                 onChange={() => toggleCategory(cat.slug)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
               />
-              <span className="text-sm text-gray-700 group-hover:text-gray-900 flex-1">{cat.nameEn}</span>
+              <span className="text-sm text-gray-700 group-hover:text-gray-900 flex-1">{localized(locale, cat.name, cat.nameEn)}</span>
               <span className="text-xs text-gray-400">{cat.count}</span>
             </label>
           ))}

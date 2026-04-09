@@ -11,6 +11,8 @@ import { addToGuestCart } from "@/lib/guestCart"
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/authContext"
+import { useLocale } from "next-intl"
+import { localized } from "@/lib/localeName"
 import type { FlashSaleInfo } from "@/lib/flashSalePrice"
 
 export type ProductCardProps = {
@@ -66,6 +68,8 @@ export default function ProductCard({
   const auth = useAuth()
   const isLoggedIn = isLoggedInProp ?? auth.isLoggedIn
   const router = useRouter()
+  const locale = useLocale()
+  const displayName = localized(locale, name, nameEn)
   const [cartStatus, setCartStatus] = useState<"idle" | "success">("idle")
   const [isPending, startTransition] = useTransition()
   const [showVariantModal, setShowVariantModal] = useState(false)
@@ -152,14 +156,14 @@ export default function ProductCard({
     <>
       <div className="group relative rounded-xl border border-gray-200 bg-white hover:border-blue-300 hover:shadow-md transition-all">
         {/* Clickable card link */}
-        <Link href={`/products/${slug}`} className="absolute inset-0 z-10" aria-label={nameEn} />
+        <Link href={`/products/${slug}`} className="absolute inset-0 z-10" aria-label={displayName} />
 
         {/* Image — 4:3 aspect ratio */}
         <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden rounded-t-xl">
           {optimizedImage ? (
             <Image
               src={optimizedImage}
-              alt={nameEn}
+              alt={displayName}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
@@ -240,9 +244,8 @@ export default function ProductCard({
         {/* Content */}
         <div className="relative z-10 p-3 pointer-events-none">
           <p className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
-            {name}
+            {displayName}
           </p>
-          <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{nameEn}</p>
 
           {categoryName && (
             <p className="mt-1 text-[11px] text-blue-500">{categoryName}</p>

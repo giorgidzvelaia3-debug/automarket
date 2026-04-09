@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import AddToCartButton from "@/components/store/AddToCartButton"
 import VariantSelector from "./VariantSelector"
 import CountdownTimer from "@/components/store/CountdownTimer"
@@ -12,6 +12,15 @@ type Variant = {
   nameEn: string
   price: number
   stock: number
+}
+
+type Labels = {
+  addToCart: string
+  added: string
+  qty: string
+  outOfStock: string
+  inStock: string
+  error: string
 }
 
 export default function ProductActions({
@@ -27,6 +36,7 @@ export default function ProductActions({
   productName,
   productNameEn,
   productImage,
+  labels,
 }: {
   productId: string
   basePrice: number
@@ -40,6 +50,7 @@ export default function ProductActions({
   productName: string
   productNameEn: string
   productImage: string | null
+  labels: Labels
 }) {
   const hasVariants = variants.length > 0
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
@@ -55,6 +66,15 @@ export default function ProductActions({
       ? applyDiscount(selectedVariant.price, flashSale.discountType, flashSale.discountValue)
       : flashSale.salePrice
     : activeOriginalPrice
+
+  // Broadcast active price/stock to the sticky mobile bar
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("product-price-update", {
+        detail: { price: activePrice, originalPrice: activeOriginalPrice, stock: activeStock, hasFlashSale: !!flashSale },
+      })
+    )
+  }, [activePrice, activeOriginalPrice, activeStock, flashSale])
 
   return (
     <div className="space-y-4">
@@ -93,7 +113,7 @@ export default function ProductActions({
       <div className="flex items-center gap-2">
         <span className={`w-2 h-2 rounded-full ${activeStock > 0 ? "bg-green-500" : "bg-red-500"}`} />
         <span className={`text-sm font-medium ${activeStock > 0 ? "text-green-700" : "text-red-600"}`}>
-          {activeStock > 0 ? `${activeStock} in stock` : "Out of stock"}
+          {activeStock > 0 ? labels.inStock.replace("{count}", String(activeStock)) : labels.outOfStock}
         </span>
       </div>
 
@@ -120,6 +140,7 @@ export default function ProductActions({
         name={productName}
         nameEn={productNameEn}
         image={productImage}
+        labels={labels}
       />
     </div>
   )

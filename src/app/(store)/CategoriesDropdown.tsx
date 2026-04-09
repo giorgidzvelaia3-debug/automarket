@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
+import { localized } from "@/lib/localeName"
 
 type Category = { id: string; slug: string; nameEn: string; name: string }
 
@@ -12,6 +13,7 @@ export default function CategoriesDropdown({
   categories: Category[]
 }) {
   const t = useTranslations("Nav")
+  const locale = useLocale()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -58,8 +60,7 @@ export default function CategoriesDropdown({
                 onClick={() => setOpen(false)}
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                {cat.nameEn}
-                <span className="ml-1 text-xs text-gray-400">/ {cat.name}</span>
+                {localized(locale, cat.name, cat.nameEn)}
               </Link>
             ))
           )}

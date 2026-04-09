@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import Image from "next/image"
+import { getLocale } from "next-intl/server"
+import { localized } from "@/lib/localeName"
 import { prisma } from "@/lib/prisma"
 import { StarDisplay } from "@/components/store/StarRating"
 import ProductGrid from "@/components/store/ProductGrid"
@@ -138,7 +140,7 @@ export default async function ShopPage(props: {
         createdAt: true,
         vendorId: true,
         images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
-        category: { select: { nameEn: true } },
+        category: { select: { nameEn: true, name: true } },
         vendor: { select: { name: true, slug: true } },
         reviews: { select: { rating: true } },
         variants: { orderBy: { order: "asc" }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
@@ -174,9 +176,11 @@ export default async function ShopPage(props: {
   const adjustedTotal = minRating ? totalCount : totalCount // approximation
   const totalPages = Math.ceil(adjustedTotal / PER_PAGE)
 
+  const locale = await getLocale()
+
   // Build name maps for pills
   const categoryNames: Record<string, string> = {}
-  for (const c of allCategories) categoryNames[c.slug] = c.nameEn
+  for (const c of allCategories) categoryNames[c.slug] = localized(locale, c.name, c.nameEn)
   const vendorNames: Record<string, string> = {}
   for (const v of allVendors) vendorNames[v.slug] = v.name
 
@@ -191,7 +195,7 @@ export default async function ShopPage(props: {
     price: Number(p.price),
     stock: p.stock,
     imageUrl: p.images[0]?.url,
-    categoryName: p.category.nameEn,
+    categoryName: localized(locale, p.category.name, p.category.nameEn),
     vendorName: p.vendor.name,
     vendorSlug: p.vendor.slug,
     vendorId: p.vendorId,
@@ -212,7 +216,7 @@ export default async function ShopPage(props: {
 
       {/* Mobile filters */}
       <ShopFilters
-        categories={allCategories.map((c) => ({ slug: c.slug, nameEn: c.nameEn, count: c._count.products }))}
+        categories={allCategories.map((c) => ({ slug: c.slug, nameEn: c.nameEn, name: c.name, count: c._count.products }))}
         vendors={allVendors.map((v) => ({ slug: v.slug, name: v.name, count: v._count.products }))}
         currentParams={params}
         mobile
@@ -221,7 +225,7 @@ export default async function ShopPage(props: {
       <div className="flex gap-8">
         {/* Desktop sidebar */}
         <ShopFilters
-          categories={allCategories.map((c) => ({ slug: c.slug, nameEn: c.nameEn, count: c._count.products }))}
+          categories={allCategories.map((c) => ({ slug: c.slug, nameEn: c.nameEn, name: c.name, count: c._count.products }))}
           vendors={allVendors.map((v) => ({ slug: v.slug, name: v.name, count: v._count.products }))}
           currentParams={params}
         />
@@ -255,7 +259,7 @@ export default async function ShopPage(props: {
                         {p.images[0] ? (
                           <Image
                             src={p.images[0].url}
-                            alt={p.nameEn}
+                            alt={localized(locale, p.name, p.nameEn)}
                             fill
                             sizes="96px"
                             className="object-cover"
@@ -265,10 +269,9 @@ export default async function ShopPage(props: {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{p.name}</p>
-                        <p className="text-xs text-gray-400 truncate">{p.nameEn}</p>
+                        <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{localized(locale, p.name, p.nameEn)}</p>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs text-blue-500">{p.category.nameEn}</span>
+                          <span className="text-xs text-blue-500">{localized(locale, p.category.name, p.category.nameEn)}</span>
                           {p.reviewCount > 0 && <StarDisplay rating={p.avgRating} count={p.reviewCount} size="sm" />}
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5">by {p.vendor.name}</p>

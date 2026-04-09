@@ -6,6 +6,7 @@ import SearchBar from "@/components/store/SearchBar"
 import LanguageToggle from "./LanguageToggle"
 import GuestCartButton from "@/components/store/GuestCartButton"
 import CartButton from "@/components/store/CartButton"
+import { localized } from "@/lib/localeName"
 
 type Category = { id: string; slug: string; nameEn: string; name: string }
 
@@ -110,8 +111,7 @@ export default function Navbar({
                       onClick={() => setCatOpen(false)}
                       className="flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <span>{cat.nameEn}</span>
-                      <span className="text-xs text-gray-400">{cat.name}</span>
+                      <span>{localized(locale, cat.name, cat.nameEn)}</span>
                     </Link>
                   ))}
                 </div>
@@ -304,7 +304,7 @@ export default function Navbar({
                 onClick={() => setMobileOpen(false)}
                 className="block px-3 py-3 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors min-h-[44px]"
               >
-                {cat.nameEn} <span className="text-xs text-gray-400">/ {cat.name}</span>
+                {localized(locale, cat.name, cat.nameEn)}
               </Link>
             ))}
           </nav>

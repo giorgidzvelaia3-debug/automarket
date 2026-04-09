@@ -23,7 +23,21 @@
     "outOfStock": "არ არის მარაგში",
     "inStock": "მარაგშია ({count})",
     "description": "აღწერა",
-    "category": "კატეგორია"
+    "category": "კატეგორია",
+    "addToCart": "კალათაში დამატება",
+    "added": "დამატებულია",
+    "qty": "რაოდენობა",
+    "error": "შეცდომა — სცადეთ თავიდან",
+    "reviews": "შეფასებები",
+    "reviewsCount": "შეფასება",
+    "noReviews": "შეფასებები ჯერ არ არის",
+    "beFirstReview": "იყავით პირველი, ვინც გამოხმაურებას დატოვებს!",
+    "noDescription": "აღწერა არ არის.",
+    "writeReview": "დაწერეთ შეფასება",
+    "editReview": "შეცვალეთ შეფასება",
+    "signInToReview": "შეფასების დასატოვებლად შედით ანგარიშში",
+    "signIn": "შესვლა",
+    "you": "თქვენ"
   },
   "Auth": {
     "appName": "AutoMarket",
