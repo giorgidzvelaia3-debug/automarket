@@ -5,6 +5,8 @@ import bcrypt from "bcryptjs"
 import { prisma } from "./prisma"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
+  trustHost: true,
   // NOTE: PrismaAdapter is cast to any because our client is generated to a
   // custom path (src/generated/prisma) rather than the default .prisma/client.
   // At runtime the client is fully compatible; only the TypeScript type differs.
