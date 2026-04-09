@@ -222,7 +222,7 @@ export default async function ProductPage(props: {
               <CompareButton
                 product={{
                   id: product.id,
-                  slug: product.slug ?? slug,
+                  slug,
                   name: product.name,
                   nameEn: product.nameEn,
                   price: priceNum,
