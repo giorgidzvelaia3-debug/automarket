@@ -123,7 +123,7 @@ export default async function VendorReturnsPage(props: {
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
-                    From <span className="font-medium text-gray-700">{req.buyer.name ?? req.buyer.email}</span>
+                    From <span className="font-medium text-gray-700">{req.buyer?.name ?? req.buyer?.email}</span>
                     {" · "}
                     Order #{req.orderId.slice(-8).toUpperCase()}
                     {" · "}

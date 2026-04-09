@@ -144,7 +144,7 @@ export default async function AdminReturnsPage(props: {
               {returns.map((req) => (
                 <tr key={req.id} className="hover:bg-gray-50 align-top">
                   <td className="px-5 py-3 font-mono text-xs text-gray-500">#{req.id.slice(-8).toUpperCase()}</td>
-                  <td className="px-5 py-3 text-xs text-gray-700">{req.buyer.name ?? req.buyer.email}</td>
+                  <td className="px-5 py-3 text-xs text-gray-700">{req.buyer?.name ?? req.buyer?.email}</td>
                   <td className="px-5 py-3 text-xs text-gray-700">{req.vendor.name}</td>
                   <td className="px-5 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${

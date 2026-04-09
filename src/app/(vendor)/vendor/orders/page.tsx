@@ -132,8 +132,8 @@ export default async function VendorOrdersPage(props: {
                     </Link>
                   </td>
                   <td className="px-5 py-3">
-                    <p className="text-sm font-medium text-gray-900">{order.buyer.name ?? "—"}</p>
-                    <p className="text-xs text-gray-400">{order.buyer.email}</p>
+                    <p className="text-sm font-medium text-gray-900">{order.buyer?.name ?? "—"}</p>
+                    <p className="text-xs text-gray-400">{order.buyer?.email}</p>
                   </td>
                   <td className="px-5 py-3">
                     <div className="space-y-0.5">

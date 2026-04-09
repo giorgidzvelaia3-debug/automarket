@@ -343,7 +343,7 @@ export default async function VendorDashboardPage() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {order.buyer.name ?? order.buyer.email} ·{" "}
+                      {order.buyer?.name ?? order.buyer?.email ?? "Guest"} ·{" "}
                       {items.length} item{items.length !== 1 ? "s" : ""}
                     </p>
                   </div>

@@ -33,7 +33,7 @@ export default async function VendorMessagesPage() {
           {conversations.map((conv) => {
             const last = conv.messages[0]
             const hasUnread = last && !last.isRead && last.senderId !== session.user.id
-            const buyerName = conv.buyer.name ?? conv.buyer.email.split("@")[0]
+            const buyerName = conv.buyer?.name ?? conv.buyer?.email.split("@")[0]
             return (
               <Link
                 key={conv.id}

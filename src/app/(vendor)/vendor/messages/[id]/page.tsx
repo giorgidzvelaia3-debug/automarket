@@ -27,7 +27,7 @@ export default async function VendorConversationPage(props: {
   await markAsRead(id)
   const messages = await getMessages(id)
 
-  const buyerName = conversation.buyer.name ?? conversation.buyer.email.split("@")[0]
+  const buyerName = conversation.buyer?.name ?? conversation.buyer?.email.split("@")[0]
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
