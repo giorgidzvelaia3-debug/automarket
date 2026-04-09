@@ -13,7 +13,7 @@ type Product = {
   nameEn: string
   price: number
   stock: number
-  status: string
+  status: "DRAFT" | "ACTIVE" | "INACTIVE"
   categoryName: string
   imageUrl?: string
 }
