@@ -7,10 +7,12 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const role = (session?.user as { role?: string } | undefined)?.role
 
+  // Protect admin routes
   if (pathname.startsWith("/admin") && role !== "ADMIN") {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
+  // Protect vendor routes — allow both VENDOR and ADMIN
   if (
     pathname.startsWith("/vendor") &&
     role !== "VENDOR" &&
@@ -19,8 +21,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
+  // Protect account routes — require any authenticated user
+  if (pathname.startsWith("/account") && !session?.user) {
+    return NextResponse.redirect(new URL("/login", request.url))
+  }
+
   // Forward pathname as a header so Server Component layouts can read it
-  // without needing the Edge-only usePathname hook.
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set("x-pathname", pathname)
 
@@ -30,5 +36,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/vendor/:path*", "/admin/:path*"],
+  matcher: ["/vendor/:path*", "/admin/:path*", "/account/:path*"],
 }

@@ -25,7 +25,7 @@ export default async function VendorLayout({
 }) {
   const session = await auth()
 
-  if (!session?.user || session.user.role !== "VENDOR") {
+  if (!session?.user || (session.user.role !== "VENDOR" && session.user.role !== "ADMIN")) {
     redirect("/login")
   }
 
