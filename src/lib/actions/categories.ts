@@ -1,7 +1,6 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -44,7 +43,6 @@ export async function createCategory(formData: FormData) {
   })
 
   revalidatePath("/admin/categories")
-  revalidateTag("categories")
   redirect("/admin/categories")
 }
 
@@ -54,5 +52,4 @@ export async function deleteCategory(id: string) {
   await prisma.category.delete({ where: { id } })
 
   revalidatePath("/admin/categories")
-  revalidateTag("categories")
 }

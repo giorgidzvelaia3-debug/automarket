@@ -39,7 +39,7 @@ export const getCachedProduct = unstable_cache(
     }
   },
   ["product-detail"],
-  { revalidate: 300, tags: ["products"] }
+  { revalidate: 300 }
 )
 
 export const getCachedProductMeta = unstable_cache(
@@ -56,5 +56,5 @@ export const getCachedProductMeta = unstable_cache(
     })
   },
   ["product-meta"],
-  { revalidate: 300, tags: ["products"] }
+  { revalidate: 300 }
 )

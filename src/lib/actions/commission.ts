@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath, revalidateTag } from "next/cache"
+import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getCachedCommissionSettings } from "@/lib/cache/commission"
@@ -54,7 +54,6 @@ export async function setGlobalCommission(percentage: number) {
     })
   }
   revalidatePath("/admin/commission")
-  revalidateTag("commission")
 }
 
 export async function setVendorCommission(vendorId: string, percentage: number) {
@@ -65,7 +64,6 @@ export async function setVendorCommission(vendorId: string, percentage: number) 
     create: { type: "VENDOR", referenceId: vendorId, percentage },
   })
   revalidatePath("/admin/commission")
-  revalidateTag("commission")
 }
 
 export async function setCategoryCommission(categoryId: string, percentage: number) {
@@ -76,7 +74,6 @@ export async function setCategoryCommission(categoryId: string, percentage: numb
     create: { type: "CATEGORY", referenceId: categoryId, percentage },
   })
   revalidatePath("/admin/commission")
-  revalidateTag("commission")
 }
 
 export async function setProductCommission(productId: string, percentage: number) {
@@ -87,14 +84,12 @@ export async function setProductCommission(productId: string, percentage: number
     create: { type: "PRODUCT", referenceId: productId, percentage },
   })
   revalidatePath("/admin/commission")
-  revalidateTag("commission")
 }
 
 export async function deleteCommissionOverride(id: string) {
   await requireAdmin()
   await prisma.commissionSetting.delete({ where: { id } })
   revalidatePath("/admin/commission")
-  revalidateTag("commission")
 }
 
 export async function getAllCommissionSettings() {

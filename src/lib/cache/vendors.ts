@@ -48,6 +48,6 @@ export function getCachedVendor(slug: string, sort: string = "newest") {
       })
     },
     [`vendor-${slug}-${sort}`],
-    { revalidate: 300, tags: ["vendors"] }
+    { revalidate: 300 }
   )()
 }

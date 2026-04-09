@@ -6,5 +6,5 @@ export const getCachedCommissionSettings = unstable_cache(
     return prisma.commissionSetting.findMany()
   },
   ["commission-settings"],
-  { revalidate: 3600, tags: ["commission"] }
+  { revalidate: 3600 }
 )

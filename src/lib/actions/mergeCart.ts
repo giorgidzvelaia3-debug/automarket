@@ -23,8 +23,8 @@ export async function mergeGuestCart(guestItems: GuestItem[]) {
     })
     if (!product) continue
 
-    const existing = await prisma.cartItem.findUnique({
-      where: { userId_productId: { userId, productId: item.productId } },
+    const existing = await prisma.cartItem.findFirst({
+      where: { userId, productId: item.productId, variantId: null },
       select: { id: true, quantity: true },
     })
 

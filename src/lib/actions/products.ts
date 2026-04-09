@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath, revalidateTag } from "next/cache"
+import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -137,8 +137,6 @@ export async function updateProductStatus(
 
   await prisma.product.update({ where: { id }, data: { status } })
   revalidatePath("/vendor/products")
-  revalidateTag("products")
-  revalidateTag("vendors")
 }
 
 async function requireImageOwnership(imageId: string) {
@@ -219,8 +217,6 @@ export async function deleteProduct(id: string) {
 
   await prisma.product.delete({ where: { id } })
   revalidatePath("/vendor/products")
-  revalidateTag("products")
-  revalidateTag("vendors")
 }
 
 // ─── Bulk Actions ─────────────────────────────────────────────────────────
@@ -256,8 +252,6 @@ export async function bulkUpdateProducts(
   })
 
   revalidatePath("/vendor/products")
-  revalidateTag("products")
-  revalidateTag("vendors")
 }
 
 export async function bulkDeleteProducts(productIds: string[]) {
@@ -269,8 +263,6 @@ export async function bulkDeleteProducts(productIds: string[]) {
   })
 
   revalidatePath("/vendor/products")
-  revalidateTag("products")
-  revalidateTag("vendors")
 }
 
 export async function adminBulkUpdateProducts(
@@ -291,7 +283,6 @@ export async function adminBulkUpdateProducts(
   })
 
   revalidatePath("/admin/products")
-  revalidateTag("products")
 }
 
 export async function adminBulkDeleteProducts(productIds: string[]) {
@@ -304,5 +295,4 @@ export async function adminBulkDeleteProducts(productIds: string[]) {
   })
 
   revalidatePath("/admin/products")
-  revalidateTag("products")
 }

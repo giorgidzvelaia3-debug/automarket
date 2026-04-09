@@ -10,7 +10,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // At runtime the client is fully compatible; only the TypeScript type differs.
   // Full adapter functionality (OAuth, magic links) also requires Account,
   // Session, and VerificationToken models to be added to the Prisma schema.
-  adapter: PrismaAdapter(prisma as any),
+  adapter: PrismaAdapter(prisma as any) as any,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
@@ -58,7 +58,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string
-        session.user.role = token.role as string
+        session.user.role = token.role as any
       }
       return session
     },
