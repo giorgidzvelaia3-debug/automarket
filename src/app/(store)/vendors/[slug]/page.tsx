@@ -6,7 +6,7 @@ import { StarDisplay } from "@/components/store/StarRating"
 import ProductGrid from "@/components/store/ProductGrid"
 import VendorBadges from "@/components/store/VendorBadges"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
-import { getCachedVendor } from "@/lib/cache/vendors"
+// Direct query instead of cache — prevents caching null results as 404
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>
@@ -44,7 +44,46 @@ export default async function VendorStorePage(props: {
     ? (sortParam as SortOption)
     : "newest"
 
-  const vendor = await getCachedVendor(slug, sort)
+  const vendor = await prisma.vendor.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      status: true,
+      createdAt: true,
+      vacationMode: true,
+      vacationMessage: true,
+      vacationEnd: true,
+      minOrderAmount: true,
+      maxOrderAmount: true,
+      minOrderQty: true,
+      maxOrderQty: true,
+      badges: { select: { badge: true } },
+      products: {
+        where: { status: "ACTIVE" },
+        orderBy:
+          sort === "price_asc"
+            ? { price: "asc" }
+            : sort === "price_desc"
+              ? { price: "desc" }
+              : { createdAt: "desc" },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          nameEn: true,
+          price: true,
+          stock: true,
+          createdAt: true,
+          images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+          category: { select: { nameEn: true } },
+          reviews: { select: { rating: true } },
+          variants: { orderBy: { order: "asc" }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
+        },
+      },
+    },
+  })
 
   if (!vendor || vendor.status !== "APPROVED") notFound()
 

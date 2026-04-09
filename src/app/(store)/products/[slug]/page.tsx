@@ -15,13 +15,22 @@ import WishlistButton from "@/components/store/WishlistButton"
 import CompareButton from "@/components/store/CompareButton"
 import { getFlashSaleByProduct, getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { isWishlisted } from "@/lib/actions/wishlist"
-import { getCachedProduct, getCachedProductMeta } from "@/lib/cache/products"
+// Cache removed — Neon cold start can cause null to be cached as 404
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await props.params
-  const product = await getCachedProductMeta(slug)
+  const product = await prisma.product.findUnique({
+    where: { slug },
+    select: {
+      name: true,
+      nameEn: true,
+      descriptionEn: true,
+      vendor: { select: { name: true } },
+      images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+    },
+  })
 
   if (!product) return { title: "Product Not Found" }
 
@@ -51,7 +60,36 @@ export default async function ProductPage(props: {
     auth(),
   ])
 
-  const product = await getCachedProduct(slug)
+  // Direct query — prevents caching null/error as 404 on Neon cold start
+  const rawProduct = await prisma.product.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      name: true,
+      nameEn: true,
+      description: true,
+      descriptionEn: true,
+      price: true,
+      stock: true,
+      status: true,
+      categoryId: true,
+      vendorId: true,
+      images: { orderBy: { order: "asc" }, select: { id: true, url: true } },
+      category: { select: { nameEn: true, name: true, slug: true } },
+      vendor: { select: { name: true, slug: true, description: true } },
+      variants: {
+        orderBy: { order: "asc" },
+        select: { id: true, name: true, nameEn: true, price: true, stock: true },
+      },
+    },
+  })
+  const product = rawProduct
+    ? {
+        ...rawProduct,
+        price: Number(rawProduct.price),
+        variants: rawProduct.variants.map((v) => ({ ...v, price: Number(v.price) })),
+      }
+    : null
   if (!product || product.status !== "ACTIVE") notFound()
 
   const userId = session?.user?.id ?? null
