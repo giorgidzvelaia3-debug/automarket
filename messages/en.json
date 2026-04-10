@@ -67,6 +67,13 @@
     "haveAccount": "Already have an account?",
     "registerLink": "Register",
     "signInLink": "Sign in",
-    "successRegistered": "Account created! You can now sign in."
+    "successRegistered": "Account created! You can now sign in.",
+    "loginError": "Invalid email or password",
+    "passwordsMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "emailExists": "An account with this email already exists",
+    "unknownError": "Something went wrong — try again",
+    "or": "or",
+    "close": "Close"
   }
 }

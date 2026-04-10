@@ -6,6 +6,8 @@ import SearchBar from "@/components/store/SearchBar"
 import LanguageToggle from "./LanguageToggle"
 import GuestCartButton from "@/components/store/GuestCartButton"
 import CartButton from "@/components/store/CartButton"
+import { signOut } from "next-auth/react"
+import { useAuthModal } from "@/lib/authModalContext"
 import { localized } from "@/lib/localeName"
 
 type Category = { id: string; slug: string; nameEn: string; name: string }
@@ -39,6 +41,7 @@ export default function Navbar({
   categoriesLabel,
   signInLabel,
 }: NavbarProps) {
+  const authModal = useAuthModal()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [catOpen, setCatOpen] = useState(false)
@@ -175,19 +178,21 @@ export default function Navbar({
             {/* User section */}
             {!isLoggedIn ? (
               <div className="flex items-center gap-1.5 sm:gap-2 ml-1">
-                <Link
-                  href="/login"
+                <button
+                  type="button"
+                  onClick={() => authModal.open("login")}
                   className="inline-flex items-center min-h-[44px] px-3 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <svg className="w-4 h-4 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
                   <span className="hidden sm:inline">{signInLabel}</span>
-                </Link>
-                <Link
-                  href="/register"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => authModal.open("register")}
                   className="hidden sm:inline-flex items-center min-h-[44px] px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Register
-                </Link>
+                </button>
               </div>
             ) : (
               /* Logged in: avatar + dropdown */
@@ -253,15 +258,14 @@ export default function Navbar({
                     )}
 
                     <div className="border-t border-gray-100 mt-1 pt-1">
-                      <form action="/api/auth/signout" method="POST">
-                        <button
-                          type="submit"
-                          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
-                          Sign out
-                        </button>
-                      </form>
+                      <button
+                        type="button"
+                        onClick={() => signOut({ callbackUrl: "/" })}
+                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
+                        Sign out
+                      </button>
                     </div>
                   </div>
                 )}

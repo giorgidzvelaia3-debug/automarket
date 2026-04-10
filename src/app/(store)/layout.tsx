@@ -5,6 +5,8 @@ import { getCachedCategories } from "@/lib/cache/categories"
 import CartMerge from "@/components/store/CartMerge"
 import { CompareProvider } from "@/lib/compareContext"
 import { CartDrawerProvider } from "@/lib/cartDrawerContext"
+import { AuthModalProvider } from "@/lib/authModalContext"
+import AuthModal from "@/components/store/AuthModal"
 import CompareBar from "@/components/store/CompareBar"
 import CartDrawer from "@/components/store/CartDrawer"
 import { AuthProvider } from "@/lib/authContext"
@@ -37,6 +39,7 @@ export default async function StoreLayout({
 
   return (
     <AuthProvider isLoggedIn={isLoggedIn} userId={session?.user?.id ?? null}>
+    <AuthModalProvider>
     <CartDrawerProvider>
     <CompareProvider>
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -85,9 +88,13 @@ export default async function StoreLayout({
 
       {/* Cart drawer */}
       <CartDrawer />
+
+      {/* Auth modal */}
+      {!isLoggedIn && <AuthModal />}
     </div>
     </CompareProvider>
     </CartDrawerProvider>
+    </AuthModalProvider>
     </AuthProvider>
   )
 }
