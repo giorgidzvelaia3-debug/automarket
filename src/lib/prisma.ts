@@ -10,8 +10,8 @@ function createPrismaClient() {
   return new PrismaClient({ adapter })
 }
 
-// Recreate client if schema changed (Banner model added etc.)
-if (globalForPrisma.prisma && !("banner" in globalForPrisma.prisma)) {
+// Recreate client if schema changed (new models added)
+if (globalForPrisma.prisma && !("productBundle" in globalForPrisma.prisma)) {
   globalForPrisma.prisma = undefined
 }
 
