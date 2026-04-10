@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma"
 import EditProductForm from "./EditProductForm"
 import VariantEditor from "../../VariantEditor"
 import ProductImageManager from "../../ProductImageManager"
+import BundleEditor from "../../BundleEditor"
+import { getBundleItems } from "@/lib/actions/bundles"
 
 export default async function EditProductPage(props: {
   params: Promise<{ id: string }>
@@ -96,6 +98,14 @@ export default async function EditProductPage(props: {
           stock: v.stock,
           sku: v.sku ?? "",
           images: v.images ?? [],
+        }))}
+      />
+
+      <BundleEditor
+        productId={product.id}
+        initialItems={(await getBundleItems(product.id)).map((b) => ({
+          ...b,
+          bundleProduct: { ...b.bundleProduct, price: Number(b.bundleProduct.price) },
         }))}
       />
     </div>

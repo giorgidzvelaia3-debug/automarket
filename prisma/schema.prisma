@@ -156,6 +156,8 @@ model Product {
   wishlistItems  Wishlist[]
   flashSaleItems FlashSaleItem[]
   coupons        Coupon[]
+  bundlesOwned   ProductBundle[] @relation("BundleOwner")
+  bundledIn      ProductBundle[] @relation("BundleItem")
 
   @@index([vendorId])
   @@index([status, categoryId, createdAt])
@@ -576,4 +578,22 @@ enum BannerPosition {
   HERO
   SIDE_TOP
   SIDE_BOTTOM
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PRODUCT BUNDLES ("ერთად იაფია")
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model ProductBundle {
+  id              String @id @default(cuid())
+  productId       String
+  bundleProductId String
+  discountPercent Int    @default(5)
+  order           Int    @default(0)
+
+  product       Product @relation("BundleOwner", fields: [productId], references: [id], onDelete: Cascade)
+  bundleProduct Product @relation("BundleItem", fields: [bundleProductId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, bundleProductId])
+  @@index([productId])
 }

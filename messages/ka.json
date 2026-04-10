@@ -52,7 +52,12 @@
     "editReview": "შეცვალეთ შეფასება",
     "signInToReview": "შეფასების დასატოვებლად შედით ანგარიშში",
     "signIn": "შესვლა",
-    "you": "თქვენ"
+    "you": "თქვენ",
+    "bundleTitle": "ერთად იაფია",
+    "bundleTotal": "ჯამური ფასი",
+    "bundleSaved": "დაზოგე {amount}",
+    "bundleAddAll": "ყველას დამატება კალათაში",
+    "bundleAdded": "დამატებულია"
   },
   "Cart": {
     "bag": "კალათა",

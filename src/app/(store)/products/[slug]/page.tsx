@@ -15,6 +15,8 @@ import WishlistButton from "@/components/store/WishlistButton"
 import CompareButton from "@/components/store/CompareButton"
 import StickyMobileBar from "./StickyMobileBar"
 import TrackRecentlyViewed from "@/components/store/TrackRecentlyViewed"
+import BundleSection from "./BundleSection"
+import { getBundleItems } from "@/lib/actions/bundles"
 import { getFlashSaleByProduct, getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { isWishlisted } from "@/lib/actions/wishlist"
 // Cache removed — Neon cold start can cause null to be cached as 404
@@ -122,6 +124,7 @@ export default async function ProductPage(props: {
     totalReviewCount,
     wishlisted,
     activeSale,
+    bundleItems,
   ] = await Promise.all([
     prisma.product.findMany({
       where: { categoryId: product.categoryId, status: "ACTIVE", id: { not: product.id } },
@@ -156,6 +159,7 @@ export default async function ProductPage(props: {
     prisma.review.count({ where: { productId: product.id } }),
     userId ? isWishlisted(product.id) : Promise.resolve(false),
     getFlashSaleByProduct(product.id),
+    getBundleItems(product.id),
   ])
 
   // Phase 3: Flash sales for carousels (depends on phase 2 results)
@@ -330,6 +334,37 @@ export default async function ProductPage(props: {
                 isLoggedIn={!!userId}
               />
             </div>
+          {/* Bundle deals */}
+          {bundleItems.length > 0 && (
+            <BundleSection
+              mainProduct={{
+                id: product.id,
+                name: product.name,
+                nameEn: product.nameEn,
+                price: priceNum,
+                image: product.images[0]?.url ?? null,
+                vendorId: product.vendorId,
+                vendorName: product.vendor.name,
+                vendorSlug: product.vendor.slug,
+              }}
+              bundles={bundleItems.map((b) => ({
+                id: b.id,
+                discountPercent: b.discountPercent,
+                bundleProduct: {
+                  id: b.bundleProduct.id,
+                  name: b.bundleProduct.name,
+                  nameEn: b.bundleProduct.nameEn,
+                  price: Number(b.bundleProduct.price),
+                  stock: b.bundleProduct.stock,
+                  slug: b.bundleProduct.slug,
+                  image: b.bundleProduct.images[0]?.url ?? null,
+                  vendorId: product.vendorId,
+                  vendorName: product.vendor.name,
+                  vendorSlug: product.vendor.slug,
+                },
+              }))}
+            />
+          )}
           </div>
         </div>
       </div>

@@ -52,7 +52,12 @@
     "editReview": "Edit your review",
     "signInToReview": "Sign in to leave a review",
     "signIn": "Sign in",
-    "you": "you"
+    "you": "you",
+    "bundleTitle": "Better Together",
+    "bundleTotal": "Bundle total",
+    "bundleSaved": "You save {amount}",
+    "bundleAddAll": "Add all to cart",
+    "bundleAdded": "Added"
   },
   "Cart": {
     "bag": "Shopping Bag",
