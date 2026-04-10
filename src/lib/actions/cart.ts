@@ -131,7 +131,10 @@ export async function getCart() {
         },
       },
       variant: {
-        select: { id: true, name: true, nameEn: true, price: true, stock: true },
+        select: {
+          id: true, name: true, nameEn: true, price: true, stock: true,
+          images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+        },
       },
       vendor: {
         select: { id: true, name: true, slug: true },

@@ -77,7 +77,7 @@ export default async function ProductPage(props: {
       status: true,
       categoryId: true,
       vendorId: true,
-      images: { orderBy: { order: "asc" }, select: { id: true, url: true } },
+      images: { orderBy: { order: "asc" }, select: { id: true, url: true, variantId: true } },
       category: { select: { nameEn: true, name: true, slug: true } },
       vendor: { select: { name: true, slug: true, description: true } },
       variants: {

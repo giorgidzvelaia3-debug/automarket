@@ -76,6 +76,15 @@ export default function ProductActions({
     )
   }, [activePrice, activeOriginalPrice, activeStock, flashSale])
 
+  // Broadcast variant selection to ImageGallery
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("variant-selected", {
+        detail: { variantId: selectedVariant?.id ?? null },
+      })
+    )
+  }, [selectedVariant])
+
   return (
     <div className="space-y-4">
       {/* Flash sale banner — reacts to variant selection */}

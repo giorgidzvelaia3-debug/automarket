@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react"
 import Image from "next/image"
 import { optimizeImageUrl } from "@/lib/imageUtils"
 
-type ProductImage = { id: string; url: string }
+type ProductImage = { id: string; url: string; variantId?: string | null }
 
 export default function ImageGallery({
   images,
@@ -15,16 +15,35 @@ export default function ImageGallery({
 }) {
   const [active, setActive] = useState(0)
   const [lightbox, setLightbox] = useState(false)
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
+
+  // Filter images: show variant-specific images if available, else product-level
+  const productImages = images.filter((img) => !img.variantId)
+  const variantImages = selectedVariantId
+    ? images.filter((img) => img.variantId === selectedVariantId)
+    : []
+  const displayImages = variantImages.length > 0 ? variantImages : productImages
+
+  // Listen for variant selection events from ProductActions
+  useEffect(() => {
+    function onVariantChange(e: Event) {
+      const variantId = (e as CustomEvent).detail?.variantId ?? null
+      setSelectedVariantId(variantId)
+      setActive(0)
+    }
+    window.addEventListener("variant-selected", onVariantChange)
+    return () => window.removeEventListener("variant-selected", onVariantChange)
+  }, [])
 
   const goTo = useCallback(
     (dir: 1 | -1) => {
-      setActive((prev) => (prev + dir + images.length) % images.length)
+      setActive((prev) => (prev + dir + displayImages.length) % displayImages.length)
     },
-    [images.length]
+    [displayImages.length]
   )
 
   useEffect(() => {
-    if (images.length <= 1 && !lightbox) return
+    if (displayImages.length <= 1 && !lightbox) return
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "ArrowLeft") goTo(-1)
       else if (e.key === "ArrowRight") goTo(1)
@@ -32,9 +51,8 @@ export default function ImageGallery({
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [goTo, images.length, lightbox])
+  }, [goTo, displayImages.length, lightbox])
 
-  // Lock body scroll when lightbox open
   useEffect(() => {
     if (lightbox) {
       document.body.style.overflow = "hidden"
@@ -42,7 +60,10 @@ export default function ImageGallery({
     }
   }, [lightbox])
 
-  if (images.length === 0) {
+  // Clamp active index if images changed
+  const safeActive = Math.min(active, displayImages.length - 1)
+
+  if (displayImages.length === 0) {
     return (
       <div className="aspect-square rounded-2xl bg-gray-100 flex items-center justify-center">
         <span className="text-gray-300 text-6xl">□</span>
@@ -53,15 +74,15 @@ export default function ImageGallery({
   return (
     <>
       <div className="flex gap-3">
-        {/* Vertical thumbnail strip — LEFT of main image (desktop only) */}
-        {images.length > 1 && (
+        {/* Vertical thumbnail strip */}
+        {displayImages.length > 1 && (
           <div className="hidden lg:flex flex-col gap-2 w-16 shrink-0">
-            {images.map((img, i) => (
+            {displayImages.map((img, i) => (
               <button
                 key={img.id}
                 onClick={() => setActive(i)}
                 className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
-                  i === active
+                  i === safeActive
                     ? "border-blue-500 ring-1 ring-blue-500/20"
                     : "border-gray-200 hover:border-gray-400 opacity-60 hover:opacity-100"
                 }`}
@@ -85,7 +106,7 @@ export default function ImageGallery({
           onClick={() => setLightbox(true)}
         >
           <Image
-            src={optimizeImageUrl(images[active].url, 800)}
+            src={optimizeImageUrl(displayImages[safeActive].url, 800)}
             alt={altBase}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
@@ -93,8 +114,7 @@ export default function ImageGallery({
             priority
           />
 
-          {/* Arrows */}
-          {images.length > 1 && (
+          {displayImages.length > 1 && (
             <>
               <button
                 type="button"
@@ -117,12 +137,11 @@ export default function ImageGallery({
                 </svg>
               </button>
               <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm text-white text-[11px] font-medium rounded-full px-3 py-1">
-                {active + 1} / {images.length}
+                {safeActive + 1} / {displayImages.length}
               </div>
             </>
           )}
 
-          {/* Zoom hint */}
           <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm text-white text-[10px] font-medium rounded-full px-2.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
@@ -133,14 +152,14 @@ export default function ImageGallery({
       </div>
 
       {/* Mobile horizontal thumbnails */}
-      {images.length > 1 && (
+      {displayImages.length > 1 && (
         <div className="flex lg:hidden gap-2 mt-3 overflow-x-auto pb-1">
-          {images.map((img, i) => (
+          {displayImages.map((img, i) => (
             <button
               key={img.id}
               onClick={() => setActive(i)}
               className={`relative shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
-                i === active
+                i === safeActive
                   ? "border-blue-500 ring-1 ring-blue-500/20"
                   : "border-gray-200 opacity-60 hover:opacity-100"
               }`}
@@ -163,7 +182,6 @@ export default function ImageGallery({
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onClick={() => setLightbox(false)}
         >
-          {/* Close */}
           <button
             type="button"
             onClick={() => setLightbox(false)}
@@ -175,13 +193,12 @@ export default function ImageGallery({
             </svg>
           </button>
 
-          {/* Image */}
           <div
             className="relative w-full max-w-4xl max-h-[85vh] aspect-square mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={optimizeImageUrl(images[active].url, 1200)}
+              src={optimizeImageUrl(displayImages[safeActive].url, 1200)}
               alt={altBase}
               fill
               sizes="100vw"
@@ -190,8 +207,7 @@ export default function ImageGallery({
             />
           </div>
 
-          {/* Lightbox arrows */}
-          {images.length > 1 && (
+          {displayImages.length > 1 && (
             <>
               <button
                 type="button"
@@ -213,9 +229,8 @@ export default function ImageGallery({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
-              {/* Counter */}
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm text-white text-sm font-medium rounded-full px-4 py-1.5">
-                {active + 1} / {images.length}
+                {safeActive + 1} / {displayImages.length}
               </div>
             </>
           )}

@@ -38,10 +38,13 @@ export default async function EditProductPage(props: {
         price: true,
         stock: true,
         categoryId: true,
-        images: { orderBy: { order: "asc" }, select: { id: true, url: true, order: true } },
+        images: { orderBy: { order: "asc" }, where: { variantId: null }, select: { id: true, url: true, order: true } },
         variants: {
           orderBy: { order: "asc" },
-          select: { id: true, name: true, nameEn: true, price: true, stock: true, sku: true },
+          select: {
+            id: true, name: true, nameEn: true, price: true, stock: true, sku: true,
+            images: { orderBy: { order: "asc" }, select: { id: true, url: true } },
+          },
         },
       },
     }),
@@ -92,6 +95,7 @@ export default async function EditProductPage(props: {
           price: String(Number(v.price)),
           stock: v.stock,
           sku: v.sku ?? "",
+          images: v.images ?? [],
         }))}
       />
     </div>

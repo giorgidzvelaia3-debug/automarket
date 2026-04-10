@@ -149,7 +149,7 @@ async function requireImageOwnership(imageId: string) {
   return { vendor, productId: image.productId }
 }
 
-export async function addProductImage(productId: string, url: string) {
+export async function addProductImage(productId: string, url: string, variantId?: string) {
   const vendor = await requireApprovedVendor()
   const product = await prisma.product.findUnique({
     where: { id: productId },
@@ -158,13 +158,13 @@ export async function addProductImage(productId: string, url: string) {
   if (!product || product.vendorId !== vendor.id) throw new Error("Not found")
 
   const maxOrder = await prisma.productImage.aggregate({
-    where: { productId },
+    where: { productId, variantId: variantId ?? null },
     _max: { order: true },
   })
 
   const created = await prisma.productImage.create({
-    data: { productId, url, order: (maxOrder._max.order ?? -1) + 1 },
-    select: { id: true, url: true, order: true },
+    data: { productId, url, order: (maxOrder._max.order ?? -1) + 1, variantId: variantId ?? null },
+    select: { id: true, url: true, order: true, variantId: true },
   })
 
   revalidatePath(`/vendor/products/${productId}/edit`)
