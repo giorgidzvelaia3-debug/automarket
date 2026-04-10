@@ -13,6 +13,7 @@ type Params = {
   sort?: string
   page?: string
   view?: string
+  perPage?: string
 }
 
 type ActiveFilter = { label: string; key: string; value?: string }
@@ -22,11 +23,13 @@ export default function ShopTopBar({
   currentParams,
   categoryNames,
   vendorNames,
+  perPage,
 }: {
   totalCount: number
   currentParams: Params
   categoryNames: Record<string, string>
   vendorNames: Record<string, string>
+  perPage: number
 }) {
   const router = useRouter()
   const sort = currentParams.sort ?? "newest"
@@ -86,7 +89,18 @@ export default function ShopTopBar({
           <span className="font-semibold text-gray-900">{totalCount}</span> product{totalCount !== 1 ? "s" : ""} found
         </p>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Per page */}
+          <select
+            value={perPage}
+            onChange={(e) => router.push(buildUrl({ perPage: e.target.value === "12" ? undefined : e.target.value, page: undefined }))}
+            className="w-auto rounded-lg border border-gray-300 px-2 sm:px-3 py-2.5 sm:py-1.5 text-base sm:text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] sm:min-h-0"
+          >
+            {[12, 24, 48, 96].map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+
           {/* Sort */}
           <select
             value={sort}

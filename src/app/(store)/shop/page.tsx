@@ -11,11 +11,13 @@ import ShopFilters from "./ShopFilters"
 import ShopTopBar from "./ShopTopBar"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
 
-const PER_PAGE = 12
+const ALLOWED_PER_PAGE = [12, 24, 48, 96]
+const DEFAULT_PER_PAGE = 12
 
 type SearchParams = {
   category?: string
   vendor?: string
+  perPage?: string
   minPrice?: string
   maxPrice?: string
   rating?: string
@@ -59,6 +61,9 @@ export default async function ShopPage(props: {
   const sort = params.sort ?? "newest"
   const page = Math.max(1, parseInt(params.page ?? "1") || 1)
   const view = params.view ?? "grid"
+  const perPage = ALLOWED_PER_PAGE.includes(parseInt(params.perPage ?? ""))
+    ? parseInt(params.perPage!)
+    : DEFAULT_PER_PAGE
   const catSlugs = (params.category ?? "").split(",").filter(Boolean)
   const vendorSlugs = (params.vendor ?? "").split(",").filter(Boolean)
 
@@ -129,8 +134,8 @@ export default async function ShopPage(props: {
     prisma.product.findMany({
       where: where as never,
       orderBy: orderBy as never,
-      skip: (page - 1) * PER_PAGE,
-      take: sort === "rating" || sort === "popular" ? 200 : PER_PAGE, // fetch more for JS sort
+      skip: (page - 1) * perPage,
+      take: sort === "rating" || sort === "popular" ? 200 : perPage, // fetch more for JS sort
       select: {
         id: true,
         slug: true,
@@ -171,11 +176,11 @@ export default async function ShopPage(props: {
 
   // Paginate after JS sort
   if (sort === "rating" || sort === "popular") {
-    products = products.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+    products = products.slice((page - 1) * perPage, page * perPage)
   }
 
   const adjustedTotal = minRating ? totalCount : totalCount // approximation
-  const totalPages = Math.ceil(adjustedTotal / PER_PAGE)
+  const totalPages = Math.ceil(adjustedTotal / perPage)
 
   const locale = await getLocale()
 
@@ -238,6 +243,7 @@ export default async function ShopPage(props: {
             currentParams={params}
             categoryNames={categoryNames}
             vendorNames={vendorNames}
+            perPage={perPage}
           />
 
           <div className="mt-6">
