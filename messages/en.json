@@ -5,7 +5,14 @@
     "signIn": "Sign in",
     "register": "Register",
     "myShop": "My Shop",
-    "account": "Account"
+    "account": "Account",
+    "home": "Home",
+    "shop": "Shop",
+    "sales": "Sales",
+    "wishlist": "Wishlist",
+    "orders": "Orders",
+    "profile": "Profile",
+    "signOut": "Sign out"
   },
   "Home": {
     "heroTitle": "Auto Parts & Accessories",

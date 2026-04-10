@@ -6,6 +6,7 @@ import SearchBar from "@/components/store/SearchBar"
 import LanguageToggle from "./LanguageToggle"
 import GuestCartButton from "@/components/store/GuestCartButton"
 import CartButton from "@/components/store/CartButton"
+import MobileMenu from "@/components/store/MobileMenu"
 import { signOut } from "next-auth/react"
 import { useAuthModal } from "@/lib/authModalContext"
 import { localized } from "@/lib/localeName"
@@ -280,40 +281,17 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="lg:hidden border-t border-gray-100 bg-white">
-          <nav className="max-w-7xl mx-auto px-4 py-3 space-y-1">
-            <Link
-              href="/shop"
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              Shop
-            </Link>
-            <Link
-              href="/vendors"
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              {vendorsLabel}
-            </Link>
-            <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              {categoriesLabel}
-            </div>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/categories/${cat.slug}`}
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-3 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors min-h-[44px]"
-              >
-                {localized(locale, cat.name, cat.nameEn)}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      )}
+      {/* Mobile menu drawer */}
+      <MobileMenu
+        isOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        categories={categories}
+        isLoggedIn={isLoggedIn}
+        userName={userName}
+        userEmail={userEmail}
+        userRole={userRole}
+        wishlistCount={wishlistCount}
+      />
     </header>
   )
 }
