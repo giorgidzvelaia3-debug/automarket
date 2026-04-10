@@ -215,9 +215,41 @@ export default async function ProductPage(props: {
 
       {/* ─── Main 2-column layout ─────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10">
-        {/* LEFT: Image gallery */}
-        <div>
+        {/* LEFT: Image gallery + bundle */}
+        <div className="space-y-6">
           <ImageGallery images={product.images} altBase={product.nameEn} />
+
+          {/* Bundle deals — below gallery */}
+          {bundleItems.length > 0 && (
+            <BundleSection
+              mainProduct={{
+                id: product.id,
+                name: product.name,
+                nameEn: product.nameEn,
+                price: priceNum,
+                image: product.images[0]?.url ?? null,
+                vendorId: product.vendorId,
+                vendorName: product.vendor.name,
+                vendorSlug: product.vendor.slug,
+              }}
+              bundles={bundleItems.map((b) => ({
+                id: b.id,
+                discountPercent: b.discountPercent,
+                bundleProduct: {
+                  id: b.bundleProduct.id,
+                  name: b.bundleProduct.name,
+                  nameEn: b.bundleProduct.nameEn,
+                  price: Number(b.bundleProduct.price),
+                  stock: b.bundleProduct.stock,
+                  slug: b.bundleProduct.slug,
+                  image: b.bundleProduct.images[0]?.url ?? null,
+                  vendorId: product.vendorId,
+                  vendorName: product.vendor.name,
+                  vendorSlug: product.vendor.slug,
+                },
+              }))}
+            />
+          )}
         </div>
 
         {/* RIGHT: Sticky info panel */}
@@ -334,37 +366,6 @@ export default async function ProductPage(props: {
                 isLoggedIn={!!userId}
               />
             </div>
-          {/* Bundle deals */}
-          {bundleItems.length > 0 && (
-            <BundleSection
-              mainProduct={{
-                id: product.id,
-                name: product.name,
-                nameEn: product.nameEn,
-                price: priceNum,
-                image: product.images[0]?.url ?? null,
-                vendorId: product.vendorId,
-                vendorName: product.vendor.name,
-                vendorSlug: product.vendor.slug,
-              }}
-              bundles={bundleItems.map((b) => ({
-                id: b.id,
-                discountPercent: b.discountPercent,
-                bundleProduct: {
-                  id: b.bundleProduct.id,
-                  name: b.bundleProduct.name,
-                  nameEn: b.bundleProduct.nameEn,
-                  price: Number(b.bundleProduct.price),
-                  stock: b.bundleProduct.stock,
-                  slug: b.bundleProduct.slug,
-                  image: b.bundleProduct.images[0]?.url ?? null,
-                  vendorId: product.vendorId,
-                  vendorName: product.vendor.name,
-                  vendorSlug: product.vendor.slug,
-                },
-              }))}
-            />
-          )}
           </div>
         </div>
       </div>
