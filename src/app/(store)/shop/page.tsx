@@ -61,9 +61,8 @@ export default async function ShopPage(props: {
   const sort = params.sort ?? "newest"
   const page = Math.max(1, parseInt(params.page ?? "1") || 1)
   const view = params.view ?? "grid"
-  const perPage = ALLOWED_PER_PAGE.includes(parseInt(params.perPage ?? ""))
-    ? parseInt(params.perPage!)
-    : DEFAULT_PER_PAGE
+  const rawPerPage = parseInt(String(params.perPage ?? "12"))
+  const perPage = ALLOWED_PER_PAGE.includes(rawPerPage) ? rawPerPage : DEFAULT_PER_PAGE
   const catSlugs = (params.category ?? "").split(",").filter(Boolean)
   const vendorSlugs = (params.vendor ?? "").split(",").filter(Boolean)
 

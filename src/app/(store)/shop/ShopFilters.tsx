@@ -18,6 +18,7 @@ type Params = {
   sort?: string
   page?: string
   view?: string
+  perPage?: string
 }
 
 export default function ShopFilters({
