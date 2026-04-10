@@ -29,7 +29,7 @@ export default async function RequestReturnPage(props: {
             select: {
               name: true,
               nameEn: true,
-              images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+              images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
             },
           },
           vendor: { select: { id: true, name: true } },

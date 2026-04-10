@@ -44,7 +44,7 @@ export async function getWishlist() {
           nameEn: true,
           price: true,
           status: true,
-          images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+          images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
           category: { select: { nameEn: true } },
           vendor: { select: { name: true } },
           reviews: { select: { rating: true } },

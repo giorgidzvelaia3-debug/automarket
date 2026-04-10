@@ -48,7 +48,7 @@ export default async function BuyerOrderDetailPage(props: {
               nameEn: true,
               slug: true,
               // nameEn used for PDF invoice fallback
-              images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+              images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
             },
           },
           vendor: { select: { name: true, slug: true } },

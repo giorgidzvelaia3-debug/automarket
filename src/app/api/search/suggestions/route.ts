@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       name: true,
       nameEn: true,
       price: true,
-      images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+      images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
     },
   })
 

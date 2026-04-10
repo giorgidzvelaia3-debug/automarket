@@ -51,7 +51,7 @@ export const getCachedProductMeta = unstable_cache(
         nameEn: true,
         descriptionEn: true,
         vendor: { select: { name: true } },
-        images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+        images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
       },
     })
   },

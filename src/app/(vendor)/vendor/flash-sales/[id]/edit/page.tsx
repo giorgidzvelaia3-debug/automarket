@@ -39,7 +39,7 @@ export default async function EditFlashSalePage(props: {
         nameEn: true,
         price: true,
         categoryId: true,
-        images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+        images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
       },
     }),
     prisma.category.findMany({

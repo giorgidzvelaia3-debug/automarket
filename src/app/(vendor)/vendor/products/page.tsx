@@ -26,7 +26,7 @@ export default async function VendorProductsPage() {
         stock: true,
         status: true,
         category: { select: { nameEn: true } },
-        images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+        images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
       },
     }),
     prisma.category.findMany({

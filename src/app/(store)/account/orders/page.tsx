@@ -41,7 +41,7 @@ export default async function OrdersPage(props: {
           quantity: true,
           price: true,
           variantName: true,
-          product: { select: { name: true, slug: true, images: { take: 1, orderBy: { order: "asc" }, select: { url: true } } } },
+          product: { select: { name: true, slug: true, images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } } } },
         },
       },
       returnRequests: { select: { status: true } },

@@ -34,7 +34,7 @@ export default async function CheckoutPage() {
           price: true,
           stock: true,
           categoryId: true,
-          images: { take: 1, orderBy: { order: "asc" }, select: { url: true } },
+          images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
         },
       },
       variant: { select: { price: true } },
