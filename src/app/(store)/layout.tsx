@@ -4,7 +4,9 @@ import { prisma } from "@/lib/prisma"
 import { getCachedCategories } from "@/lib/cache/categories"
 import CartMerge from "@/components/store/CartMerge"
 import { CompareProvider } from "@/lib/compareContext"
+import { CartDrawerProvider } from "@/lib/cartDrawerContext"
 import CompareBar from "@/components/store/CompareBar"
+import CartDrawer from "@/components/store/CartDrawer"
 import { AuthProvider } from "@/lib/authContext"
 import Navbar from "./Navbar"
 import Link from "next/link"
@@ -35,6 +37,7 @@ export default async function StoreLayout({
 
   return (
     <AuthProvider isLoggedIn={isLoggedIn} userId={session?.user?.id ?? null}>
+    <CartDrawerProvider>
     <CompareProvider>
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar
@@ -79,8 +82,12 @@ export default async function StoreLayout({
 
       {/* Compare bar */}
       <CompareBar />
+
+      {/* Cart drawer */}
+      <CartDrawer />
     </div>
     </CompareProvider>
+    </CartDrawerProvider>
     </AuthProvider>
   )
 }

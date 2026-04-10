@@ -58,6 +58,8 @@ export default function StickyMobileBar({
         try {
           await addToCart(productId, 1)
           setStatus("success")
+          window.dispatchEvent(new Event("cart-change"))
+          window.dispatchEvent(new Event("cart-drawer-open"))
           setTimeout(() => setStatus("idle"), 2500)
         } catch {
           setStatus("error")
@@ -80,6 +82,7 @@ export default function StickyMobileBar({
         })
         setStatus("success")
         window.dispatchEvent(new Event("guest-cart-change"))
+        window.dispatchEvent(new Event("cart-drawer-open"))
         setTimeout(() => setStatus("idle"), 2500)
       } catch {
         setStatus("error")

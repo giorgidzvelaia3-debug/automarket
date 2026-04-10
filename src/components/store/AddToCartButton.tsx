@@ -64,6 +64,8 @@ export default function AddToCartButton({
         try {
           await addToCart(productId, quantity, variantId)
           setStatus("success")
+          window.dispatchEvent(new Event("cart-change"))
+          window.dispatchEvent(new Event("cart-drawer-open"))
           setTimeout(() => setStatus("idle"), 2500)
         } catch {
           setStatus("error")
@@ -86,6 +88,7 @@ export default function AddToCartButton({
         })
         setStatus("success")
         window.dispatchEvent(new Event("guest-cart-change"))
+        window.dispatchEvent(new Event("cart-drawer-open"))
         setTimeout(() => setStatus("idle"), 2500)
       } catch {
         setStatus("error")

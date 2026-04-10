@@ -1,10 +1,11 @@
 "use client"
 
-import Link from "next/link"
 import { useState, useEffect } from "react"
 import { getGuestCartCount } from "@/lib/guestCart"
+import { useCartDrawer } from "@/lib/cartDrawerContext"
 
 export default function GuestCartButton() {
+  const { open } = useCartDrawer()
   const [count, setCount] = useState(0)
 
   useEffect(() => {
@@ -23,8 +24,9 @@ export default function GuestCartButton() {
   }, [])
 
   return (
-    <Link
-      href="/cart"
+    <button
+      type="button"
+      onClick={() => open("cart")}
       className="relative flex items-center justify-center w-8 h-8 text-gray-600 hover:text-blue-600 transition-colors"
       aria-label={`Cart (${count} items)`}
     >
@@ -47,6 +49,6 @@ export default function GuestCartButton() {
           {count > 99 ? "99+" : count}
         </span>
       )}
-    </Link>
+    </button>
   )
 }

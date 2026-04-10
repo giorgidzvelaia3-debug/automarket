@@ -124,6 +124,8 @@ export default function ProductCard({
         try {
           await addToCart(productId, 1)
           setCartStatus("success")
+          window.dispatchEvent(new Event("cart-change"))
+          window.dispatchEvent(new Event("cart-drawer-open"))
           setTimeout(() => setCartStatus("idle"), 2000)
         } catch { /* ignore */ }
       })
@@ -141,6 +143,7 @@ export default function ProductCard({
         stock: stock ?? 0,
       })
       window.dispatchEvent(new Event("guest-cart-change"))
+      window.dispatchEvent(new Event("cart-drawer-open"))
       setCartStatus("success")
       setTimeout(() => setCartStatus("idle"), 2000)
     }

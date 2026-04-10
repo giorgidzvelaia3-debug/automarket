@@ -65,6 +65,8 @@ export default function VariantPickerModal({
       startTransition(async () => {
         try {
           await addToCart(productId, 1, selected.id)
+          window.dispatchEvent(new Event("cart-change"))
+          window.dispatchEvent(new Event("cart-drawer-open"))
           onSuccess()
         } catch { /* ignore */ }
       })
@@ -82,6 +84,7 @@ export default function VariantPickerModal({
         stock: selected.stock,
       })
       window.dispatchEvent(new Event("guest-cart-change"))
+      window.dispatchEvent(new Event("cart-drawer-open"))
       onSuccess()
     }
   }

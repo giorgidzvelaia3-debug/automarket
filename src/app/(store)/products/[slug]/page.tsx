@@ -14,6 +14,7 @@ import LazyProductCarousel from "@/components/store/LazyProductCarousel"
 import WishlistButton from "@/components/store/WishlistButton"
 import CompareButton from "@/components/store/CompareButton"
 import StickyMobileBar from "./StickyMobileBar"
+import TrackRecentlyViewed from "@/components/store/TrackRecentlyViewed"
 import { getFlashSaleByProduct, getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { isWishlisted } from "@/lib/actions/wishlist"
 // Cache removed — Neon cold start can cause null to be cached as 404
@@ -187,6 +188,16 @@ export default async function ProductPage(props: {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
+      {/* Track recently viewed */}
+      <TrackRecentlyViewed
+        id={product.id}
+        slug={slug}
+        name={product.name}
+        nameEn={product.nameEn}
+        price={priceNum}
+        image={product.images[0]?.url ?? null}
+      />
+
       {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-1.5 text-xs text-gray-400">
         <Link href="/" className="hover:text-gray-600 transition-colors">Home</Link>

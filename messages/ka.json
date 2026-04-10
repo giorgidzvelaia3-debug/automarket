@@ -39,6 +39,20 @@
     "signIn": "შესვლა",
     "you": "თქვენ"
   },
+  "Cart": {
+    "bag": "კალათა",
+    "recentlyViewed": "ბოლოს ნანახი",
+    "subtotal": "ჯამი",
+    "viewCart": "კალათა",
+    "checkout": "შეკვეთა",
+    "empty": "კალათა ცარიელია",
+    "emptyHint": "დაამატეთ პროდუქტები კალათაში",
+    "continueShopping": "შოპინგის გაგრძელება",
+    "freeShippingAway": "უფასო მიწოდებამდე დარჩა {amount}",
+    "freeShippingReached": "უფასო მიწოდება!",
+    "noRecentItems": "ბოლოს ნანახი პროდუქტები არ არის",
+    "noRecentHint": "დაათვალიერეთ პროდუქტები და ისინი აქ გამოჩნდება"
+  },
   "Auth": {
     "appName": "AutoMarket",
     "signInTitle": "შედით თქვენს ანგარიშში",

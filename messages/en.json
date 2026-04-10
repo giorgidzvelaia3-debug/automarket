@@ -39,6 +39,20 @@
     "signIn": "Sign in",
     "you": "you"
   },
+  "Cart": {
+    "bag": "Shopping Bag",
+    "recentlyViewed": "Recently Viewed",
+    "subtotal": "Subtotal",
+    "viewCart": "Cart",
+    "checkout": "Checkout",
+    "empty": "Your bag is empty",
+    "emptyHint": "Add products to your cart",
+    "continueShopping": "Continue Shopping",
+    "freeShippingAway": "You're only {amount} away from free shipping",
+    "freeShippingReached": "You've qualified for free shipping!",
+    "noRecentItems": "No recently viewed items",
+    "noRecentHint": "Browse products and they will appear here"
+  },
   "Auth": {
     "appName": "AutoMarket",
     "signInTitle": "Sign in to your account",
