@@ -91,12 +91,12 @@ export default async function HomePage() {
         </div>
 
         {heroBanners.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4 lg:h-[420px]">
             {/* Main carousel */}
             <HeroBannerCarousel banners={heroBanners} />
 
             {/* Side banners - desktop only */}
-            <div className="hidden lg:flex flex-col gap-4">
+            <div className="hidden lg:flex flex-col gap-4 h-full">
               {sideTopBanners[0] && <SideBanner banner={sideTopBanners[0]} />}
               {sideBottomBanners[0] ? (
                 <SideBanner banner={sideBottomBanners[0]} />
