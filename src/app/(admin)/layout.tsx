@@ -15,6 +15,7 @@ const navLinks = [
   { href: "/admin/withdrawals", label: "Withdrawals" },
   { href: "/admin/earnings", label: "Earnings" },
   { href: "/admin/commission", label: "Commission" },
+  { href: "/admin/banners", label: "Banners" },
   { href: "/admin/settings", label: "Settings" },
 ]
 

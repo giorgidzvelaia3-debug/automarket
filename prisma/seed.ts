@@ -307,6 +307,19 @@ async function main() {
     console.log(`  ✓ Vendor "${v.name}" — ${products.length} products`)
   }
 
+  // Banners
+  await prisma.banner.deleteMany()
+  await prisma.banner.createMany({
+    data: [
+      { title: "ხარისხიანი ავტო ნაწილები", titleEn: "Premium Auto Parts", subtitle: "საუკეთესო ფასებით საქართველოში", subtitleEn: "Best prices in Georgia", imageUrl: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=80", linkUrl: "/shop", position: "HERO", order: 0 },
+      { title: "ძრავის ნაწილები", titleEn: "Engine Parts", subtitle: "OEM და ხარისხიანი ანალოგები", subtitleEn: "OEM and quality aftermarket", imageUrl: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1200&q=80", linkUrl: "/shop", position: "HERO", order: 1 },
+      { title: "სამუხრუჭე სისტემა", titleEn: "Brake Systems", subtitle: "უსაფრთხოებას პრიორიტეტი მიანიჭე", subtitleEn: "Safety comes first", imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1200&q=80", linkUrl: "/shop", position: "HERO", order: 2 },
+      { title: "აქციები", titleEn: "Flash Sales", subtitle: "შეზღუდული დროით", subtitleEn: "Limited time offers", imageUrl: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80", linkUrl: "/flash-sales", position: "SIDE_TOP", order: 0 },
+      { title: "სანდო გამყიდველები", titleEn: "Trusted Vendors", subtitle: "ვერიფიცირებული მაღაზიები", subtitleEn: "Verified shops", imageUrl: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&q=80", linkUrl: "/vendors", position: "SIDE_BOTTOM", order: 0 },
+    ],
+  })
+  console.log("  ✓ 5 banners")
+
   console.log("\n✅ Seed complete!")
   console.log("\n📋 Test accounts:")
   console.log("   Admin:  admin@automarket.ge / admin123")

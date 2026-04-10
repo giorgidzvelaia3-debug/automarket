@@ -552,3 +552,28 @@ model ReturnItem {
   returnRequest ReturnRequest @relation(fields: [returnRequestId], references: [id], onDelete: Cascade)
   orderItem     OrderItem     @relation(fields: [orderItemId], references: [id])
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BANNERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  titleEn   String?
+  subtitle  String?
+  subtitleEn String?
+  imageUrl  String
+  linkUrl   String?
+  position  BannerPosition @default(HERO)
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum BannerPosition {
+  HERO
+  SIDE_TOP
+  SIDE_BOTTOM
+}

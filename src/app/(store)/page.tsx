@@ -6,11 +6,14 @@ import SearchBar from "@/components/store/SearchBar"
 import { StarDisplay } from "@/components/store/StarRating"
 import CountdownTimer from "@/components/store/CountdownTimer"
 import LazyProductCarousel from "@/components/store/LazyProductCarousel"
+import HeroBannerCarousel from "@/components/store/HeroBannerCarousel"
+import SideBanner from "@/components/store/SideBanner"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
+import { getBanners } from "@/lib/actions/banners"
 
 export default async function HomePage() {
   const now = new Date()
-  const [categories, vendors, featuredProducts, flashSales, t, locale] = await Promise.all([
+  const [categories, vendors, featuredProducts, flashSales, t, locale, allBanners] = await Promise.all([
     prisma.category.findMany({
       orderBy: { nameEn: "asc" },
       select: { id: true, slug: true, nameEn: true, name: true },
@@ -69,39 +72,73 @@ export default async function HomePage() {
     }),
     getTranslations("Home"),
     getLocale(),
+    getBanners(),
   ])
 
   const flashSaleMap = await getFlashSalesForProducts(featuredProducts.map((p) => p.id))
 
+  const heroBanners = allBanners.filter((b) => b.position === "HERO")
+  const sideTopBanners = allBanners.filter((b) => b.position === "SIDE_TOP")
+  const sideBottomBanners = allBanners.filter((b) => b.position === "SIDE_BOTTOM")
+
   return (
     <>
-      {/* Hero — full-width banner */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-blue-800 text-white overflow-hidden">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+      {/* Hero — Banner layout */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+        {/* Search bar - prominent on top */}
+        <div className="max-w-2xl mx-auto mb-6 lg:hidden">
+          <SearchBar placeholder={t("searchPlaceholder")} />
         </div>
-        <div className="relative max-w-4xl mx-auto text-center py-16 sm:py-24 lg:py-32 px-4">
-          <p className="text-blue-300 text-sm font-semibold tracking-widest uppercase mb-4">
-            Georgia&apos;s #1 Auto Parts Marketplace
-          </p>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
-            {t("heroTitle")}
-          </h1>
-          <p className="mt-5 text-lg sm:text-xl text-blue-100/80 max-w-2xl mx-auto">
-            {t("heroSubtitle")}
-          </p>
-          <div className="mt-10 max-w-xl mx-auto">
-            <SearchBar placeholder={t("searchPlaceholder")} />
+
+        {heroBanners.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+            {/* Main carousel */}
+            <HeroBannerCarousel banners={heroBanners} />
+
+            {/* Side banners - desktop only */}
+            <div className="hidden lg:flex flex-col gap-4">
+              {sideTopBanners[0] && <SideBanner banner={sideTopBanners[0]} />}
+              {sideBottomBanners[0] ? (
+                <SideBanner banner={sideBottomBanners[0]} />
+              ) : sideTopBanners[1] ? (
+                <SideBanner banner={sideTopBanners[1]} />
+              ) : (
+                /* Fallback: quick links card */
+                <div className="flex-1 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 flex flex-col justify-center text-white">
+                  <p className="text-xs font-semibold tracking-widest uppercase text-blue-200 mb-2">AutoMarket</p>
+                  <p className="text-lg font-bold leading-snug">{t("heroTitle")}</p>
+                  <p className="text-sm text-blue-100/70 mt-1.5">{t("heroSubtitle")}</p>
+                  <div className="mt-4 flex items-center gap-3 text-[11px] text-blue-200/70">
+                    <span>{vendors.length} vendors</span>
+                    <span className="w-1 h-1 rounded-full bg-blue-300/40" />
+                    <span>{featuredProducts.length}+ products</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="mt-6 flex items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm text-blue-200/70 flex-wrap">
-            <span>{vendors.length} vendors</span>
-            <span className="w-1 h-1 rounded-full bg-blue-400/50" />
-            <span>{featuredProducts.length}+ products</span>
-            <span className="w-1 h-1 rounded-full bg-blue-400/50" />
-            <span>Free to browse</span>
+        ) : (
+          /* Fallback hero when no banners */
+          <div className="relative rounded-2xl bg-gradient-to-br from-gray-900 via-blue-900 to-blue-800 text-white overflow-hidden">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+            </div>
+            <div className="relative text-center py-16 sm:py-24 px-4">
+              <p className="text-blue-300 text-sm font-semibold tracking-widest uppercase mb-4">
+                Georgia&apos;s #1 Auto Parts Marketplace
+              </p>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
+                {t("heroTitle")}
+              </h1>
+              <p className="mt-5 text-lg sm:text-xl text-blue-100/80 max-w-2xl mx-auto">
+                {t("heroSubtitle")}
+              </p>
+              <div className="mt-8 max-w-xl mx-auto hidden lg:block">
+                <SearchBar placeholder={t("searchPlaceholder")} />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
