@@ -96,7 +96,7 @@ export default function AddToCartButton({
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-1 min-w-0">
       {/* Quantity selector — compact */}
       <div className="flex items-center rounded-lg border border-gray-300 overflow-hidden shrink-0">
         <button

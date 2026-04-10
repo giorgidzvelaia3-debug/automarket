@@ -89,26 +89,26 @@ export default function ProductInfoPanel({
             productNameEn={product.nameEn}
             productImage={product.images[0]?.url ?? null}
             labels={labels}
+            wishlistSlot={
+              <WishlistButton
+                productId={product.id}
+                isWishlisted={wishlisted}
+                isLoggedIn={!!userId}
+                size="md"
+              />
+            }
+            compareSlot={
+              <CompareButton
+                product={{
+                  id: product.id, slug,
+                  name: product.name, nameEn: product.nameEn,
+                  price: product.price,
+                  image: product.images[0]?.url ?? null,
+                }}
+                iconOnly
+              />
+            }
           />
-
-          {/* Action row: Wishlist + Compare */}
-          <div className="flex items-center gap-2 pt-1">
-            <WishlistButton
-              productId={product.id}
-              isWishlisted={wishlisted}
-              isLoggedIn={!!userId}
-              size="md"
-            />
-            <CompareButton
-              product={{
-                id: product.id, slug,
-                name: product.name, nameEn: product.nameEn,
-                price: product.price,
-                image: product.images[0]?.url ?? null,
-              }}
-              iconOnly
-            />
-          </div>
         </div>
 
         {/* Vendor */}

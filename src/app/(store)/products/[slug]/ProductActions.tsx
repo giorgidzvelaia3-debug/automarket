@@ -37,6 +37,8 @@ export default function ProductActions({
   productNameEn,
   productImage,
   labels,
+  wishlistSlot,
+  compareSlot,
 }: {
   productId: string
   basePrice: number
@@ -51,6 +53,8 @@ export default function ProductActions({
   productNameEn: string
   productImage: string | null
   labels: Labels
+  wishlistSlot?: React.ReactNode
+  compareSlot?: React.ReactNode
 }) {
   const hasVariants = variants.length > 0
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
@@ -136,21 +140,25 @@ export default function ProductActions({
 
       <hr className="border-gray-200" />
 
-      {/* Add to Cart */}
-      <AddToCartButton
-        productId={productId}
-        variantId={selectedVariant?.id}
-        stock={activeStock}
-        isLoggedIn={isLoggedIn}
-        vendorId={vendorId}
-        vendorName={vendorName}
-        vendorSlug={vendorSlug}
-        price={activePrice}
-        name={productName}
-        nameEn={productNameEn}
-        image={productImage}
-        labels={labels}
-      />
+      {/* Add to Cart + Wishlist + Compare — one row */}
+      <div className="flex items-center gap-2">
+        <AddToCartButton
+          productId={productId}
+          variantId={selectedVariant?.id}
+          stock={activeStock}
+          isLoggedIn={isLoggedIn}
+          vendorId={vendorId}
+          vendorName={vendorName}
+          vendorSlug={vendorSlug}
+          price={activePrice}
+          name={productName}
+          nameEn={productNameEn}
+          image={productImage}
+          labels={labels}
+        />
+        {wishlistSlot}
+        {compareSlot}
+      </div>
     </div>
   )
 }
