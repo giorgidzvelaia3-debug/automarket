@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import { optimizeImageUrl } from "@/lib/imageUtils"
 import { prisma } from "@/lib/prisma"
 import CountdownTimer from "@/components/store/CountdownTimer"
 
@@ -92,7 +93,7 @@ export default async function FlashSalesPage() {
                         <div className="relative aspect-square bg-gray-100 overflow-hidden">
                           {item.product.images[0] ? (
                             <Image
-                              src={item.product.images[0].url}
+                              src={optimizeImageUrl(item.product.images[0].url, 300)}
                               alt={item.product.nameEn}
                               fill
                               sizes="150px"

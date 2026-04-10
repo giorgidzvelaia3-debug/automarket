@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import Image from "next/image"
+import { optimizeImageUrl } from "@/lib/imageUtils"
 
 type ProductImage = { id: string; url: string }
 
@@ -66,7 +67,7 @@ export default function ImageGallery({
                 }`}
               >
                 <Image
-                  src={img.url}
+                  src={optimizeImageUrl(img.url, 80)}
                   alt={`${altBase} ${i + 1}`}
                   fill
                   sizes="64px"
@@ -84,7 +85,7 @@ export default function ImageGallery({
           onClick={() => setLightbox(true)}
         >
           <Image
-            src={images[active].url}
+            src={optimizeImageUrl(images[active].url, 800)}
             alt={altBase}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
@@ -145,7 +146,7 @@ export default function ImageGallery({
               }`}
             >
               <Image
-                src={img.url}
+                src={optimizeImageUrl(img.url, 80)}
                 alt={`${altBase} ${i + 1}`}
                 fill
                 sizes="56px"
@@ -180,7 +181,7 @@ export default function ImageGallery({
             onClick={(e) => e.stopPropagation()}
           >
             <Image
-              src={images[active].url}
+              src={optimizeImageUrl(images[active].url, 1200)}
               alt={altBase}
               fill
               sizes="100vw"

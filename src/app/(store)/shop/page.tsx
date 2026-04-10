@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import Image from "next/image"
+import { optimizeImageUrl } from "@/lib/imageUtils"
 import { getLocale } from "next-intl/server"
 import { localized } from "@/lib/localeName"
 import { prisma } from "@/lib/prisma"
@@ -258,7 +259,7 @@ export default async function ShopPage(props: {
                       <div className="relative w-24 h-24 rounded-lg bg-gray-100 overflow-hidden shrink-0">
                         {p.images[0] ? (
                           <Image
-                            src={p.images[0].url}
+                            src={optimizeImageUrl(p.images[0].url, 200)}
                             alt={localized(locale, p.name, p.nameEn)}
                             fill
                             sizes="96px"

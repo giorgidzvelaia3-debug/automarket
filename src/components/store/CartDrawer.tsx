@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
 import { localized } from "@/lib/localeName"
+import { optimizeImageUrl } from "@/lib/imageUtils"
 import { useCartDrawer } from "@/lib/cartDrawerContext"
 import { useAuth } from "@/lib/authContext"
 import { useRecentlyViewed } from "@/lib/useRecentlyViewed"
@@ -347,7 +348,7 @@ function CartTab({
             {/* Image */}
             <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden shrink-0 relative">
               {item.image ? (
-                <Image src={item.image} alt="" fill sizes="64px" className="object-cover" />
+                <Image src={optimizeImageUrl(item.image, 80)} alt="" fill sizes="64px" className="object-cover" />
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <span className="text-gray-300 text-lg">□</span>
@@ -462,7 +463,7 @@ function RecentlyViewedTab({
         >
           <div className="relative aspect-square bg-gray-100">
             {item.image ? (
-              <Image src={item.image} alt="" fill sizes="180px" className="object-cover" />
+              <Image src={optimizeImageUrl(item.image, 200)} alt="" fill sizes="180px" className="object-cover" />
             ) : (
               <div className="flex items-center justify-center h-full">
                 <span className="text-gray-300 text-2xl">□</span>

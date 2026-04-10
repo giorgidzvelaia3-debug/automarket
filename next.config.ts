@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
     ],
+    minimumCacheTTL: 2592000, // 30 days
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [64, 96, 200, 384],
   },
 }
 

@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import { optimizeImageUrl } from "@/lib/imageUtils"
 import { getLocale } from "next-intl/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
@@ -78,7 +79,7 @@ export default async function ComparePage(props: {
         <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
           {p.images[0] ? (
             <Image
-              src={p.images[0].url}
+              src={optimizeImageUrl(p.images[0].url, 300)}
               alt={p.nameEn}
               fill
               sizes="200px"
