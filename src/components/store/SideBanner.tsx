@@ -22,7 +22,7 @@ export default function SideBanner({ banner }: { banner: Banner }) {
 
   return (
     // @ts-expect-error conditional wrapper
-    <Wrapper {...wrapperProps} className="relative block w-full flex-1 min-h-[140px] rounded-2xl overflow-hidden bg-gray-200 group">
+    <Wrapper {...wrapperProps} className="relative block w-full flex-1 min-h-[120px] lg:min-h-[140px] rounded-2xl overflow-hidden bg-gray-200 group">
       <Image
         src={banner.imageUrl}
         alt={localized(locale, banner.title, banner.titleEn)}

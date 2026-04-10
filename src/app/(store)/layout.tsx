@@ -9,6 +9,8 @@ import { AuthModalProvider } from "@/lib/authModalContext"
 import AuthModal from "@/components/store/AuthModal"
 import CompareBar from "@/components/store/CompareBar"
 import CartDrawer from "@/components/store/CartDrawer"
+import NavigationProgress from "@/components/store/NavigationProgress"
+import ScrollToTop from "@/components/store/ScrollToTop"
 import { AuthProvider } from "@/lib/authContext"
 import Navbar from "./Navbar"
 import Link from "next/link"
@@ -43,6 +45,8 @@ export default async function StoreLayout({
     <CartDrawerProvider>
     <CompareProvider>
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <NavigationProgress />
+      <ScrollToTop />
       <Navbar
         categories={categories}
         locale={locale}

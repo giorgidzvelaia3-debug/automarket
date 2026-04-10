@@ -10,6 +10,11 @@ function createPrismaClient() {
   return new PrismaClient({ adapter })
 }
 
+// Recreate client if schema changed (Banner model added etc.)
+if (globalForPrisma.prisma && !("banner" in globalForPrisma.prisma)) {
+  globalForPrisma.prisma = undefined
+}
+
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()
 
 if (process.env.NODE_ENV !== "production") {

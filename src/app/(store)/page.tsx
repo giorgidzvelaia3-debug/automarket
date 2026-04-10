@@ -84,39 +84,43 @@ export default async function HomePage() {
   return (
     <>
       {/* Hero — Banner layout */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
-        {/* Search bar - prominent on top */}
-        <div className="max-w-2xl mx-auto mb-6 lg:hidden">
-          <SearchBar placeholder={t("searchPlaceholder")} />
-        </div>
-
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2">
         {heroBanners.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4 lg:h-[420px]">
-            {/* Main carousel */}
-            <HeroBannerCarousel banners={heroBanners} />
-
-            {/* Side banners - desktop only */}
-            <div className="hidden lg:flex flex-col gap-4 h-full">
-              {sideTopBanners[0] && <SideBanner banner={sideTopBanners[0]} />}
-              {sideBottomBanners[0] ? (
-                <SideBanner banner={sideBottomBanners[0]} />
-              ) : sideTopBanners[1] ? (
-                <SideBanner banner={sideTopBanners[1]} />
-              ) : (
-                /* Fallback: quick links card */
-                <div className="flex-1 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 flex flex-col justify-center text-white">
-                  <p className="text-xs font-semibold tracking-widest uppercase text-blue-200 mb-2">AutoMarket</p>
-                  <p className="text-lg font-bold leading-snug">{t("heroTitle")}</p>
-                  <p className="text-sm text-blue-100/70 mt-1.5">{t("heroSubtitle")}</p>
-                  <div className="mt-4 flex items-center gap-3 text-[11px] text-blue-200/70">
-                    <span>{vendors.length} vendors</span>
-                    <span className="w-1 h-1 rounded-full bg-blue-300/40" />
-                    <span>{featuredProducts.length}+ products</span>
+          <>
+            {/* Desktop: 3-column layout */}
+            <div className="hidden lg:grid lg:grid-cols-[1fr_280px] gap-4 lg:h-[420px]">
+              <HeroBannerCarousel banners={heroBanners} />
+              <div className="flex flex-col gap-4 h-full">
+                {sideTopBanners[0] && <SideBanner banner={sideTopBanners[0]} />}
+                {sideBottomBanners[0] ? (
+                  <SideBanner banner={sideBottomBanners[0]} />
+                ) : sideTopBanners[1] ? (
+                  <SideBanner banner={sideTopBanners[1]} />
+                ) : (
+                  <div className="flex-1 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 flex flex-col justify-center text-white">
+                    <p className="text-xs font-semibold tracking-widest uppercase text-blue-200 mb-2">AutoMarket</p>
+                    <p className="text-lg font-bold leading-snug">{t("heroTitle")}</p>
+                    <p className="text-sm text-blue-100/70 mt-1.5">{t("heroSubtitle")}</p>
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile: main carousel + side banners in a row below */}
+            <div className="lg:hidden space-y-3">
+              <HeroBannerCarousel banners={heroBanners} />
+              {(sideTopBanners.length > 0 || sideBottomBanners.length > 0) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {sideTopBanners[0] && <SideBanner banner={sideTopBanners[0]} />}
+                  {sideBottomBanners[0] ? (
+                    <SideBanner banner={sideBottomBanners[0]} />
+                  ) : sideTopBanners[1] ? (
+                    <SideBanner banner={sideTopBanners[1]} />
+                  ) : null}
                 </div>
               )}
             </div>
-          </div>
+          </>
         ) : (
           /* Fallback hero when no banners */
           <div className="relative rounded-2xl bg-gradient-to-br from-gray-900 via-blue-900 to-blue-800 text-white overflow-hidden">

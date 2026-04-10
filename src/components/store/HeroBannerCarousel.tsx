@@ -39,7 +39,7 @@ export default function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
   const wrapperProps = banner.linkUrl ? { href: banner.linkUrl } : {}
 
   return (
-    <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-200 group">
+    <div className="relative w-full aspect-[16/7] lg:aspect-auto lg:h-full rounded-2xl overflow-hidden bg-gray-200 group">
       {/* @ts-expect-error conditional wrapper */}
       <Wrapper {...wrapperProps} className="block relative w-full h-full">
         <Image
