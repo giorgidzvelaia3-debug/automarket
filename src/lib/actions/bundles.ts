@@ -3,26 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { addToCart } from "./cart"
-
-async function requireVendorOwnership(productId: string) {
-  const { auth } = await import("@/lib/auth")
-  const session = await auth()
-  if (!session?.user) throw new Error("Unauthorized")
-
-  const vendor = await prisma.vendor.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true },
-  })
-  if (!vendor) throw new Error("Not a vendor")
-
-  const product = await prisma.product.findUnique({
-    where: { id: productId },
-    select: { vendorId: true },
-  })
-  if (!product || product.vendorId !== vendor.id) throw new Error("Not your product")
-
-  return vendor
-}
+import { requireVendorOwnership } from "@/lib/authHelpers"
 
 export async function getBundleItems(productId: string) {
   return prisma.productBundle.findMany({

@@ -1,29 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-
-async function requireVendorOwnership(productId: string) {
-  const session = await auth()
-  if (!session?.user?.id || session.user.role !== "VENDOR") {
-    throw new Error("Unauthorized")
-  }
-
-  const vendor = await prisma.vendor.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true, status: true },
-  })
-  if (!vendor || vendor.status !== "APPROVED") throw new Error("Vendor not approved")
-
-  const product = await prisma.product.findUnique({
-    where: { id: productId },
-    select: { vendorId: true },
-  })
-  if (!product || product.vendorId !== vendor.id) throw new Error("Product not found")
-
-  return vendor
-}
+import { requireVendorOwnership } from "@/lib/authHelpers"
 
 export async function addVariant(
   productId: string,

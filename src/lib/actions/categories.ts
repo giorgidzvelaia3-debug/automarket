@@ -2,13 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-
-async function requireAdmin() {
-  const session = await auth()
-  if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized")
-}
+import { requireAdmin } from "@/lib/authHelpers"
 
 function toSlug(value: string): string {
   return value

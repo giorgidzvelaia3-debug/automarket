@@ -14,6 +14,7 @@ export default function StickyPanel({ children }: { children: ReactNode }) {
     const gap = 16
 
     function onScroll() {
+      if (!el) return
       const parent = el.parentElement
       if (!parent) return
 

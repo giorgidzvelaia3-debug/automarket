@@ -3,23 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-
-async function requireAdmin() {
-  const session = await auth()
-  if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized")
-  return session.user.id!
-}
-
-async function requireApprovedVendor() {
-  const session = await auth()
-  if (!session?.user?.id || session.user.role !== "VENDOR") throw new Error("Unauthorized")
-  const vendor = await prisma.vendor.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true, status: true },
-  })
-  if (!vendor || vendor.status !== "APPROVED") throw new Error("Vendor not approved")
-  return { vendor, userId: session.user.id }
-}
+import { requireAdmin, requireApprovedVendor } from "@/lib/authHelpers"
 
 export type ValidateCartItem = {
   productId: string
@@ -125,9 +109,9 @@ export async function createCoupon(data: {
     createdBy = "ADMIN"
     createdById = session.user.id
   } else if (session.user.role === "VENDOR") {
-    const { vendor, userId } = await requireApprovedVendor()
+    const vendor = await requireApprovedVendor()
     createdBy = "VENDOR"
-    createdById = userId
+    createdById = vendor.userId
     // Vendors can only create coupons scoped to their own store
     if (data.scope === "MARKETPLACE") throw new Error("Vendors cannot create marketplace coupons")
     vendorId = vendor.id
@@ -171,7 +155,7 @@ export async function getAdminCoupons() {
 }
 
 export async function getVendorCoupons() {
-  const { vendor } = await requireApprovedVendor()
+  const vendor = await requireApprovedVendor()
   return prisma.coupon.findMany({
     where: { vendorId: vendor.id },
     orderBy: { createdAt: "desc" },
@@ -192,7 +176,7 @@ export async function toggleCoupon(id: string) {
 
   // Vendor can only toggle own coupons
   if (session.user.role === "VENDOR") {
-    const { vendor } = await requireApprovedVendor()
+    const vendor = await requireApprovedVendor()
     if (coupon.vendorId !== vendor.id) throw new Error("Unauthorized")
   } else if (session.user.role !== "ADMIN") {
     throw new Error("Unauthorized")
@@ -215,7 +199,7 @@ export async function deleteCoupon(id: string) {
   if (!coupon) throw new Error("Not found")
 
   if (session.user.role === "VENDOR") {
-    const { vendor } = await requireApprovedVendor()
+    const vendor = await requireApprovedVendor()
     if (coupon.vendorId !== vendor.id) throw new Error("Unauthorized")
   } else if (session.user.role !== "ADMIN") {
     throw new Error("Unauthorized")

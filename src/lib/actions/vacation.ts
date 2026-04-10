@@ -1,19 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-
-async function requireApprovedVendor() {
-  const session = await auth()
-  if (!session?.user?.id || session.user.role !== "VENDOR") throw new Error("Unauthorized")
-  const vendor = await prisma.vendor.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true, status: true },
-  })
-  if (!vendor || vendor.status !== "APPROVED") throw new Error("Vendor not approved")
-  return vendor
-}
+import { requireApprovedVendor } from "@/lib/authHelpers"
 
 export async function setVacationMode(
   enabled: boolean,

@@ -129,6 +129,8 @@ model Category {
   products   Product[]
   flashSales FlashSale[]
   coupons    Coupon[]
+
+  @@index([parentId])
 }
 
 model Product {
@@ -288,6 +290,9 @@ model Message {
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
 }
 
 model SiteSettings {
@@ -369,6 +374,7 @@ model FlashSaleItem {
   product   Product   @relation(fields: [productId], references: [id])
 
   @@index([productId])
+  @@index([flashSaleId])
 }
 
 enum CommissionType {
@@ -472,6 +478,7 @@ model Coupon {
   uses     CouponUse[]
 
   @@index([vendorId, createdAt])
+  @@index([createdById])
 }
 
 model CouponUse {

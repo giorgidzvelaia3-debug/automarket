@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin, requireApprovedVendor } from "@/lib/authHelpers"
 
 const RETURN_WINDOW_DAYS = 14
 
@@ -10,22 +11,6 @@ async function requireBuyer() {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
   return session.user.id
-}
-
-async function requireApprovedVendor() {
-  const session = await auth()
-  if (!session?.user?.id || session.user.role !== "VENDOR") throw new Error("Unauthorized")
-  const vendor = await prisma.vendor.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true, status: true },
-  })
-  if (!vendor || vendor.status !== "APPROVED") throw new Error("Vendor not approved")
-  return vendor
-}
-
-async function requireAdmin() {
-  const session = await auth()
-  if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized")
 }
 
 export async function canRequestReturn(

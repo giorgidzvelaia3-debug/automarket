@@ -2,12 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-
-async function requireAdmin() {
-  const { auth } = await import("@/lib/auth")
-  const session = await auth()
-  if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized")
-}
+import { requireAdmin } from "@/lib/authHelpers"
 
 export async function getBanners() {
   return prisma.banner.findMany({

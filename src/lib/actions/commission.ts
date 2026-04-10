@@ -1,14 +1,9 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getCachedCommissionSettings } from "@/lib/cache/commission"
-
-async function requireAdmin() {
-  const session = await auth()
-  if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized")
-}
+import { requireAdmin } from "@/lib/authHelpers"
 
 export async function getCommissionRate(
   productId: string,

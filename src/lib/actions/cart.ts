@@ -1,17 +1,11 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getFlashSaleByProduct } from "@/lib/actions/flashSales"
 import { getEffectivePrice } from "@/lib/flashSalePrice"
 import { serializeCartItem } from "@/lib/serialize"
-
-async function requireUser() {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
-  return session.user.id
-}
+import { requireUser } from "@/lib/authHelpers"
 
 export async function addToCart(productId: string, quantity: number = 1, variantId?: string) {
   const userId = await requireUser()

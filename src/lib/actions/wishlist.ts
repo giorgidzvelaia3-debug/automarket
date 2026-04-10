@@ -3,12 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-
-async function requireUser() {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
-  return session.user.id
-}
+import { requireUser } from "@/lib/authHelpers"
 
 export async function toggleWishlist(productId: string) {
   const userId = await requireUser()

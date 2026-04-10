@@ -110,6 +110,7 @@ export async function createOrder(formData: FormData) {
   )
 
   // Create order, order items, decrement stock, clear cart — all in one transaction
+  try {
   await prisma.$transaction(async (tx) => {
     const order = await tx.order.create({
       data: {
@@ -166,6 +167,10 @@ export async function createOrder(formData: FormData) {
 
     return order
   })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Order failed"
+    redirect(`/cart?error=${encodeURIComponent(message)}`)
+  }
 
   redirect("/account/orders?success=true")
 }
