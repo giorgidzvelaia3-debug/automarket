@@ -41,6 +41,7 @@ export async function getBundleItems(productId: string) {
           stock: true,
           slug: true,
           images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
+          variants: { orderBy: { order: "asc" }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
         },
       },
     },

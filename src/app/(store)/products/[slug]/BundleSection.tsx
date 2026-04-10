@@ -9,6 +9,8 @@ import { addToCart } from "@/lib/actions/cart"
 import { addToGuestCart } from "@/lib/guestCart"
 import { useAuth } from "@/lib/authContext"
 
+type BundleVariant = { id: string; name: string; nameEn: string; price: number; stock: number }
+
 type BundleItem = {
   id: string
   discountPercent: number
@@ -23,6 +25,7 @@ type BundleItem = {
     vendorId: string
     vendorName: string
     vendorSlug: string
+    variants?: BundleVariant[]
   }
 }
 
@@ -64,11 +67,28 @@ export default function BundleSection({
 
   const selectedBundles = bundles.filter((b) => selected.has(b.id))
 
+  // Get effective price for a bundle product (first in-stock variant or base)
+  function getEffectivePrice(bp: BundleItem["bundleProduct"]) {
+    if (bp.variants && bp.variants.length > 0) {
+      const inStock = bp.variants.find((v) => v.stock > 0)
+      return inStock ? inStock.price : bp.variants[0].price
+    }
+    return bp.price
+  }
+
+  function getFirstVariantId(bp: BundleItem["bundleProduct"]): string | undefined {
+    if (bp.variants && bp.variants.length > 0) {
+      const inStock = bp.variants.find((v) => v.stock > 0)
+      return (inStock ?? bp.variants[0]).id
+    }
+    return undefined
+  }
+
   // Calculate prices
   const mainPrice = mainProduct.price
-  const bundleOriginalTotal = selectedBundles.reduce((s, b) => s + b.bundleProduct.price, 0)
+  const bundleOriginalTotal = selectedBundles.reduce((s, b) => s + getEffectivePrice(b.bundleProduct), 0)
   const bundleDiscountedTotal = selectedBundles.reduce(
-    (s, b) => s + b.bundleProduct.price * (1 - b.discountPercent / 100),
+    (s, b) => s + getEffectivePrice(b.bundleProduct) * (1 - b.discountPercent / 100),
     0
   )
   const totalOriginal = mainPrice + bundleOriginalTotal
@@ -76,46 +96,54 @@ export default function BundleSection({
   const saved = totalOriginal - totalDiscounted
   const itemCount = 1 + selectedBundles.length
 
+  function addGuestItems() {
+    addToGuestCart({
+      productId: mainProduct.id,
+      vendorId: mainProduct.vendorId,
+      vendorName: mainProduct.vendorName,
+      vendorSlug: mainProduct.vendorSlug,
+      quantity: 1,
+      price: mainProduct.price,
+      name: mainProduct.name,
+      nameEn: mainProduct.nameEn,
+      image: mainProduct.image,
+      stock: 999,
+    })
+    for (const b of selectedBundles) {
+      const ep = getEffectivePrice(b.bundleProduct)
+      const discountedPrice = ep * (1 - b.discountPercent / 100)
+      addToGuestCart({
+        productId: b.bundleProduct.id,
+        vendorId: b.bundleProduct.vendorId,
+        vendorName: b.bundleProduct.vendorName,
+        vendorSlug: b.bundleProduct.vendorSlug,
+        quantity: 1,
+        price: Math.round(discountedPrice * 100) / 100,
+        name: b.bundleProduct.name,
+        nameEn: b.bundleProduct.nameEn,
+        image: b.bundleProduct.image,
+        stock: b.bundleProduct.stock,
+      })
+    }
+    window.dispatchEvent(new Event("guest-cart-change"))
+  }
+
   function handleAddAll() {
     startTransition(async () => {
       try {
         if (isLoggedIn) {
-          // Add main product
-          await addToCart(mainProduct.id, 1)
-          // Add each selected bundle product
-          for (const b of selectedBundles) {
-            await addToCart(b.bundleProduct.id, 1)
+          try {
+            await addToCart(mainProduct.id, 1)
+            for (const b of selectedBundles) {
+              await addToCart(b.bundleProduct.id, 1, getFirstVariantId(b.bundleProduct))
+            }
+            window.dispatchEvent(new Event("cart-change"))
+          } catch {
+            // Fallback to guest cart if server action fails
+            addGuestItems()
           }
-          window.dispatchEvent(new Event("cart-change"))
         } else {
-          addToGuestCart({
-            productId: mainProduct.id,
-            vendorId: mainProduct.vendorId,
-            vendorName: mainProduct.vendorName,
-            vendorSlug: mainProduct.vendorSlug,
-            quantity: 1,
-            price: mainProduct.price,
-            name: mainProduct.name,
-            nameEn: mainProduct.nameEn,
-            image: mainProduct.image,
-            stock: 999,
-          })
-          for (const b of selectedBundles) {
-            const discountedPrice = b.bundleProduct.price * (1 - b.discountPercent / 100)
-            addToGuestCart({
-              productId: b.bundleProduct.id,
-              vendorId: b.bundleProduct.vendorId,
-              vendorName: b.bundleProduct.vendorName,
-              vendorSlug: b.bundleProduct.vendorSlug,
-              quantity: 1,
-              price: Math.round(discountedPrice * 100) / 100,
-              name: b.bundleProduct.name,
-              nameEn: b.bundleProduct.nameEn,
-              image: b.bundleProduct.image,
-              stock: b.bundleProduct.stock,
-            })
-          }
-          window.dispatchEvent(new Event("guest-cart-change"))
+          addGuestItems()
         }
         window.dispatchEvent(new Event("cart-drawer-open"))
         setStatus("success")
@@ -155,7 +183,8 @@ export default function BundleSection({
         {/* Bundle items with checkboxes */}
         {bundles.map((b) => {
           const isSelected = selected.has(b.id)
-          const originalPrice = b.bundleProduct.price
+          const hasVariants = b.bundleProduct.variants && b.bundleProduct.variants.length > 0
+          const originalPrice = getEffectivePrice(b.bundleProduct)
           const discountedPrice = originalPrice * (1 - b.discountPercent / 100)
 
           return (
@@ -183,6 +212,7 @@ export default function BundleSection({
                   {localized(locale, b.bundleProduct.name, b.bundleProduct.nameEn)}
                 </p>
                 <div className="flex items-baseline gap-1.5">
+                  {hasVariants && <span className="text-[10px] text-gray-400">from</span>}
                   <span className="text-sm font-bold text-orange-600">₾{discountedPrice.toFixed(2)}</span>
                   {b.discountPercent > 0 && (
                     <span className="text-xs text-gray-400 line-through">₾{originalPrice.toFixed(2)}</span>
