@@ -90,19 +90,15 @@ export default function ProductInfoPanel({
             productImage={product.images[0]?.url ?? null}
             labels={labels}
           />
-        </div>
 
-        {/* Wishlist + Compare */}
-        <div className="px-5 pb-4 flex gap-2">
-          <div className="flex-1">
+          {/* Action row: Wishlist + Compare */}
+          <div className="flex items-center gap-2 pt-1">
             <WishlistButton
               productId={product.id}
               isWishlisted={wishlisted}
               isLoggedIn={!!userId}
               size="md"
             />
-          </div>
-          <div className="flex-1">
             <CompareButton
               product={{
                 id: product.id, slug,
@@ -110,6 +106,7 @@ export default function ProductInfoPanel({
                 price: product.price,
                 image: product.images[0]?.url ?? null,
               }}
+              iconOnly
             />
           </div>
         </div>

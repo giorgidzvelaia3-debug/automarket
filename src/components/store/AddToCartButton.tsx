@@ -17,7 +17,6 @@ export default function AddToCartButton({
   nameEn,
   image,
   labels,
-  compact,
 }: {
   productId: string
   variantId?: string
@@ -31,7 +30,6 @@ export default function AddToCartButton({
   nameEn?: string
   image?: string | null
   labels?: { addToCart: string; added: string; qty: string; outOfStock: string; error: string }
-  compact?: boolean
 }) {
   const [quantity, setQuantity] = useState(1)
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
@@ -98,39 +96,36 @@ export default function AddToCartButton({
   }
 
   return (
-    <div className={compact ? "flex items-center gap-3" : "space-y-3"}>
-      {/* Quantity selector */}
-      <div className={`flex items-center ${compact ? "" : "gap-3"}`}>
-        {!compact && <span className="text-sm text-gray-600">{l.qty}</span>}
-        <div className="flex items-center rounded-lg border border-gray-300 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            disabled={quantity <= 1}
-            className={`${compact ? "px-2 py-1" : "px-3 py-1.5"} text-gray-600 hover:bg-gray-100 disabled:opacity-40 transition-colors`}
-          >
-            −
-          </button>
-          <span className={`${compact ? "px-2 py-1 min-w-[2rem]" : "px-4 py-1.5 min-w-[2.5rem]"} text-sm font-medium text-gray-900 text-center`}>
-            {quantity}
-          </span>
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-            disabled={quantity >= maxQty}
-            className={`${compact ? "px-2 py-1" : "px-3 py-1.5"} text-gray-600 hover:bg-gray-100 disabled:opacity-40 transition-colors`}
-          >
-            +
-          </button>
-        </div>
+    <div className="flex items-center gap-2">
+      {/* Quantity selector — compact */}
+      <div className="flex items-center rounded-lg border border-gray-300 overflow-hidden shrink-0">
+        <button
+          type="button"
+          onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+          disabled={quantity <= 1}
+          className="px-2.5 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-40 transition-colors text-sm"
+        >
+          −
+        </button>
+        <span className="px-3 py-2 text-sm font-medium text-gray-900 text-center min-w-[2rem]">
+          {quantity}
+        </span>
+        <button
+          type="button"
+          onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
+          disabled={quantity >= maxQty}
+          className="px-2.5 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-40 transition-colors text-sm"
+        >
+          +
+        </button>
       </div>
 
-      {/* Add button */}
+      {/* Add to Cart button */}
       <button
         type="button"
         onClick={handleAdd}
         disabled={isPending}
-        className={`${compact ? "flex-1" : "w-full"} rounded-lg px-5 py-3 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+        className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
           status === "success"
             ? "bg-green-600 text-white focus:ring-green-500"
             : status === "error"
@@ -138,6 +133,10 @@ export default function AddToCartButton({
               : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
         } disabled:opacity-60 disabled:cursor-not-allowed`}
       >
+        {/* Cart icon */}
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.273M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+        </svg>
         {isPending
           ? "…"
           : status === "success"
