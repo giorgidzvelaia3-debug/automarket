@@ -34,11 +34,12 @@ type Props = {
     outOfStock: string; inStock: string; error: string
   }
   visitShopLabel: string
+  hideVendor?: boolean
 }
 
 export default function ProductInfoPanel({
   product, locale, localized, slug, userId, avgRating, totalReviewCount,
-  wishlisted, activeSale, labels, visitShopLabel,
+  wishlisted, activeSale, labels, visitShopLabel, hideVendor,
 }: Props) {
   return (
     <div>
@@ -112,7 +113,7 @@ export default function ProductInfoPanel({
         </div>
 
         {/* Vendor */}
-        <div className="border-t border-gray-100 px-5 py-4">
+        {!hideVendor && <div className="border-t border-gray-100 px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
               <span className="text-blue-500 text-base font-bold">
@@ -145,7 +146,7 @@ export default function ProductInfoPanel({
               isLoggedIn={!!userId}
             />
           </div>
-        </div>
+        </div>}
       </div>
     </div>
   )
