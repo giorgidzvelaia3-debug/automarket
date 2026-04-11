@@ -187,6 +187,9 @@ export default function BundleSection({
     const mainVariant = mainVid ? mainProduct.variants?.find((v) => v.id === mainVid) : undefined
     addToGuestCart({
       productId: mainProduct.id,
+      variantId: mainVid ?? null,
+      variantName: mainVariant?.name ?? null,
+      variantNameEn: mainVariant?.nameEn ?? null,
       vendorId: mainProduct.vendorId,
       vendorName: mainProduct.vendorName,
       vendorSlug: mainProduct.vendorSlug,
@@ -204,6 +207,9 @@ export default function BundleSection({
       const discountedPrice = flashPrice * (1 - b.discountPercent / 100)
       addToGuestCart({
         productId: b.bundleProduct.id,
+        variantId: vid ?? null,
+        variantName: variant?.name ?? null,
+        variantNameEn: variant?.nameEn ?? null,
         vendorId: b.bundleProduct.vendorId,
         vendorName: b.bundleProduct.vendorName,
         vendorSlug: b.bundleProduct.vendorSlug,

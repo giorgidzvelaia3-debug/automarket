@@ -7,6 +7,8 @@ import { addToGuestCart } from "@/lib/guestCart"
 export default function AddToCartButton({
   productId,
   variantId,
+  variantName,
+  variantNameEn,
   stock,
   isLoggedIn,
   vendorId,
@@ -20,6 +22,8 @@ export default function AddToCartButton({
 }: {
   productId: string
   variantId?: string
+  variantName?: string
+  variantNameEn?: string
   stock: number
   isLoggedIn: boolean
   vendorId?: string
@@ -74,6 +78,9 @@ export default function AddToCartButton({
       try {
         addToGuestCart({
           productId,
+          variantId: variantId ?? null,
+          variantName: variantName ?? null,
+          variantNameEn: variantNameEn ?? null,
           vendorId: vendorId ?? "",
           vendorName: vendorName ?? "",
           vendorSlug: vendorSlug ?? "",

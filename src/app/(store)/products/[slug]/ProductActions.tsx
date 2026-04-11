@@ -145,6 +145,8 @@ export default function ProductActions({
         <AddToCartButton
           productId={productId}
           variantId={selectedVariant?.id}
+          variantName={selectedVariant?.name}
+          variantNameEn={selectedVariant?.nameEn}
           stock={activeStock}
           isLoggedIn={isLoggedIn}
           vendorId={vendorId}

@@ -18,6 +18,7 @@ const FREE_SHIPPING_THRESHOLD = 100 // ₾
 type CartItem = {
   id: string
   productId: string
+  variantId?: string | null
   slug: string
   name: string
   nameEn: string
@@ -72,8 +73,9 @@ export default function CartDrawer() {
       const guest = getGuestCart()
       setCartItems(
         guest.map((g) => ({
-          id: g.productId,
+          id: `${g.productId}::${g.variantId ?? ""}`,
           productId: g.productId,
+          variantId: g.variantId,
           slug: "",
           name: g.name,
           nameEn: g.nameEn,
@@ -81,6 +83,8 @@ export default function CartDrawer() {
           price: g.price,
           quantity: g.quantity,
           stock: g.stock,
+          variantName: g.variantName,
+          variantNameEn: g.variantNameEn,
           vendorName: g.vendorName,
         }))
       )
@@ -133,7 +137,7 @@ export default function CartDrawer() {
         await removeFromCart(item.id)
         window.dispatchEvent(new Event("cart-change"))
       } else {
-        removeFromGuestCart(item.productId)
+        removeFromGuestCart(item.productId, item.variantId)
         window.dispatchEvent(new Event("guest-cart-change"))
       }
       loadCart()
@@ -148,7 +152,7 @@ export default function CartDrawer() {
         await updateCartQuantity(item.id, newQty)
         window.dispatchEvent(new Event("cart-change"))
       } else {
-        updateGuestCartQuantity(item.productId, newQty)
+        updateGuestCartQuantity(item.productId, newQty, item.variantId)
         window.dispatchEvent(new Event("guest-cart-change"))
       }
       loadCart()

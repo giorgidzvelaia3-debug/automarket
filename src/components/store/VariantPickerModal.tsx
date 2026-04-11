@@ -76,13 +76,16 @@ export default function VariantPickerModal({
     } else {
       addToGuestCart({
         productId,
+        variantId: selected.id,
+        variantName: selected.name,
+        variantNameEn: selected.nameEn,
         vendorId,
         vendorName,
         vendorSlug,
         quantity: 1,
         price: flashSale ? applyDiscount(selected.price, flashSale.discountType, flashSale.discountValue) : selected.price,
         name: productName,
-        nameEn: `${productNameEn} — ${selected.nameEn}`,
+        nameEn: productNameEn,
         image: productImage,
         stock: selected.stock,
       })
