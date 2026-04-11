@@ -10,10 +10,12 @@ import HeroBannerCarousel from "@/components/store/HeroBannerCarousel"
 import SideBanner from "@/components/store/SideBanner"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { getBanners } from "@/lib/actions/banners"
+import { getWishlistIds } from "@/lib/actions/wishlist"
+import { toProductCardProps } from "@/lib/productCard"
 
 export default async function HomePage() {
   const now = new Date()
-  const [categories, vendors, featuredProducts, flashSales, t, locale, allBanners] = await Promise.all([
+  const [categories, vendors, featuredProducts, flashSales, t, locale, allBanners, wishlistIds] = await Promise.all([
     prisma.category.findMany({
       orderBy: { nameEn: "asc" },
       select: { id: true, slug: true, nameEn: true, name: true },
@@ -48,7 +50,7 @@ export default async function HomePage() {
         createdAt: true,
         vendorId: true,
         images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
-        category: { select: { nameEn: true } },
+        category: { select: { nameEn: true, name: true } },
         vendor: { select: { name: true, slug: true } },
         reviews: { select: { rating: true } },
         variants: { orderBy: { order: "asc" }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
@@ -73,6 +75,7 @@ export default async function HomePage() {
     getTranslations("Home"),
     getLocale(),
     getBanners(),
+    getWishlistIds(),
   ])
 
   const flashSaleMap = await getFlashSalesForProducts(featuredProducts.map((p) => p.id))
@@ -235,28 +238,13 @@ export default async function HomePage() {
               </Link>
             </div>
             <LazyProductCarousel
-              products={featuredProducts.map((p) => {
-                const rc = p.reviews.length
-                const avg = rc > 0 ? p.reviews.reduce((s, r) => s + r.rating, 0) / rc : undefined
-                return {
-                  productId: p.id,
-                  slug: p.slug,
-                  name: p.name,
-                  nameEn: p.nameEn,
-                  price: Number(p.price),
-                  stock: p.stock,
-                  imageUrl: p.images[0]?.url,
-                  categoryName: p.category.nameEn,
-                  vendorName: p.vendor.name,
-                  vendorSlug: p.vendor.slug,
-                  vendorId: p.vendorId,
-                  avgRating: avg,
-                  reviewCount: rc > 0 ? rc : undefined,
-                  createdAt: p.createdAt.toISOString(),
-                  variants: p.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })),
-                  flashSale: flashSaleMap.get(p.id) ?? null,
-                }
-              })}
+              products={featuredProducts.map((product) =>
+                toProductCardProps(product, {
+                  locale,
+                  flashSale: flashSaleMap.get(product.id) ?? null,
+                  isWishlisted: wishlistIds.has(product.id),
+                })
+              )}
             />
           </section>
         )}

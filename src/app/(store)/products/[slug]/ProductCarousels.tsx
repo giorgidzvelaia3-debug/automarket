@@ -1,6 +1,8 @@
 import Link from "next/link"
 import LazyProductCarousel from "@/components/store/LazyProductCarousel"
 import type { FlashSaleInfo } from "@/lib/flashSalePrice"
+import { getWishlistIds } from "@/lib/actions/wishlist"
+import { toProductCardProps } from "@/lib/productCard"
 
 type CarouselProduct = {
   id: string
@@ -18,36 +20,7 @@ type CarouselProduct = {
   variants?: { id: string; name: string; nameEn: string; price: unknown; stock: number }[]
 }
 
-function mapProducts(
-  products: CarouselProduct[],
-  localized: (locale: string, ka: string | null | undefined, en: string | null | undefined) => string,
-  locale: string,
-  flashSaleMap: Map<string, FlashSaleInfo>,
-) {
-  return products.map((p) => {
-    const rc = p.reviews.length
-    return {
-      productId: p.id,
-      slug: p.slug,
-      name: p.name,
-      nameEn: p.nameEn,
-      price: Number(p.price),
-      stock: p.stock,
-      imageUrl: p.images[0]?.url,
-      categoryName: localized(locale, p.category.name, p.category.nameEn),
-      vendorName: p.vendor.name,
-      vendorSlug: p.vendor.slug,
-      vendorId: p.vendorId,
-      avgRating: rc > 0 ? p.reviews.reduce((s, r) => s + r.rating, 0) / rc : undefined,
-      reviewCount: rc > 0 ? rc : undefined,
-      createdAt: p.createdAt.toISOString(),
-      variants: p.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })),
-      flashSale: flashSaleMap.get(p.id) ?? null,
-    }
-  })
-}
-
-export default function ProductCarousels({
+export default async function ProductCarousels({
   similarProducts,
   vendorProducts,
   categorySlug,
@@ -66,6 +39,9 @@ export default function ProductCarousels({
   localized: (locale: string, ka: string | null | undefined, en: string | null | undefined) => string
   flashSaleMap: Map<string, FlashSaleInfo>
 }) {
+  const wishlistIds = await getWishlistIds()
+  void localized
+
   return (
     <>
       {similarProducts.length > 0 && (
@@ -76,7 +52,15 @@ export default function ProductCarousels({
               View All →
             </Link>
           </div>
-          <LazyProductCarousel products={mapProducts(similarProducts, localized, locale, flashSaleMap)} />
+          <LazyProductCarousel
+            products={similarProducts.map((product) =>
+              toProductCardProps(product, {
+                locale,
+                flashSale: flashSaleMap.get(product.id) ?? null,
+                isWishlisted: wishlistIds.has(product.id),
+              })
+            )}
+          />
         </div>
       )}
 
@@ -90,7 +74,15 @@ export default function ProductCarousels({
               View Shop →
             </Link>
           </div>
-          <LazyProductCarousel products={mapProducts(vendorProducts, localized, locale, flashSaleMap)} />
+          <LazyProductCarousel
+            products={vendorProducts.map((product) =>
+              toProductCardProps(product, {
+                locale,
+                flashSale: flashSaleMap.get(product.id) ?? null,
+                isWishlisted: wishlistIds.has(product.id),
+              })
+            )}
+          />
         </div>
       )}
     </>

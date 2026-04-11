@@ -1,12 +1,12 @@
 import Link from "next/link"
 import { getLocale } from "next-intl/server"
-import { localized } from "@/lib/localeName"
 import { prisma } from "@/lib/prisma"
-import { StarDisplay } from "@/components/store/StarRating"
 import ProductGrid from "@/components/store/ProductGrid"
 import SearchBar from "@/components/store/SearchBar"
 import SearchFilters from "./SearchFilters"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
+import { getWishlistIds } from "@/lib/actions/wishlist"
+import { toProductCardProps } from "@/lib/productCard"
 
 type SearchParams = {
   q?: string
@@ -97,6 +97,8 @@ export default async function SearchPage(props: {
       nameEn: true,
       price: true,
       stock: true,
+      createdAt: true,
+      vendorId: true,
       images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
       category: { select: { nameEn: true, name: true } },
       vendor: { select: { name: true, slug: true } },
@@ -105,7 +107,10 @@ export default async function SearchPage(props: {
     },
   })
 
-  const locale = await getLocale()
+  const [locale, wishlistIds] = await Promise.all([
+    getLocale(),
+    getWishlistIds(),
+  ])
 
   // Compute avg rating for each product and apply filters
   let filtered = products.map((p) => {
@@ -229,22 +234,15 @@ export default async function SearchPage(props: {
                 Products <span className="text-gray-400 font-normal">({filtered.length})</span>
               </h2>
               <ProductGrid
-                products={filtered.map((p) => ({
-                  productId: p.id,
-                  slug: p.slug,
-                  name: p.name,
-                  nameEn: p.nameEn,
-                  price: Number(p.price),
-                  stock: p.stock,
-                  imageUrl: p.images[0]?.url,
-                  categoryName: localized(locale, p.category.name, p.category.nameEn),
-                  vendorName: p.vendor.name,
-                  vendorSlug: p.vendor.slug,
-                  avgRating: p.reviewCount > 0 ? p.avgRating : undefined,
-                  reviewCount: p.reviewCount > 0 ? p.reviewCount : undefined,
-                  variants: p.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })),
-                  flashSale: flashSaleMap.get(p.id) ?? null,
-                }))}
+                products={filtered.map((product) =>
+                  toProductCardProps(product, {
+                    locale,
+                    flashSale: flashSaleMap.get(product.id) ?? null,
+                    isWishlisted: wishlistIds.has(product.id),
+                    avgRating: product.avgRating,
+                    reviewCount: product.reviewCount,
+                  })
+                )}
                 emptyMessage="No products match your filters."
               />
             </section>

@@ -1,15 +1,20 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { getLocale } from "next-intl/server"
 import { auth } from "@/lib/auth"
 import { getWishlist } from "@/lib/actions/wishlist"
 import ProductGrid from "@/components/store/ProductGrid"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
+import { toProductCardProps } from "@/lib/productCard"
 
 export default async function WishlistPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const items = await getWishlist()
+  const [items, locale] = await Promise.all([
+    getWishlist(),
+    getLocale(),
+  ])
   const activeItems = items.filter((i) => i.product.status === "ACTIVE")
   const flashSaleMap = await getFlashSalesForProducts(activeItems.map((i) => i.product.id))
 
@@ -38,29 +43,14 @@ export default async function WishlistPage() {
         </div>
       ) : (
         <ProductGrid
-          products={activeItems.map((item) => {
-            const rc = item.product.reviews.length
-            const avg =
-              rc > 0
-                ? item.product.reviews.reduce((s, r) => s + r.rating, 0) / rc
-                : undefined
-            return {
-              productId: item.productId,
-              slug: item.product.slug,
-              name: item.product.name,
-              nameEn: item.product.nameEn,
-              price: Number(item.product.price),
-              imageUrl: item.product.images[0]?.url,
-              categoryName: item.product.category.nameEn,
-              vendorName: item.product.vendor.name,
-              avgRating: avg,
-              reviewCount: rc > 0 ? rc : undefined,
-              isLoggedIn: true,
-              wishlist: { isWishlisted: true },
-              variants: item.product.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })),
+          products={activeItems.map((item) =>
+            toProductCardProps(item.product, {
+              locale,
               flashSale: flashSaleMap.get(item.product.id) ?? null,
-            }
-          })}
+              isLoggedIn: true,
+              isWishlisted: true,
+            })
+          )}
         />
       )}
     </div>

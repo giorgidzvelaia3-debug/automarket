@@ -5,7 +5,7 @@ import Image from "next/image"
 import { StarDisplay } from "./StarRating"
 import WishlistButton from "./WishlistButton"
 import CompareButton from "./CompareButton"
-import VariantPickerModal, { type VariantOption } from "./VariantPickerModal"
+import VariantPickerModal from "./VariantPickerModal"
 import { addToCart } from "@/lib/actions/cart"
 import { addToGuestCart } from "@/lib/guestCart"
 import { useState, useTransition } from "react"
@@ -13,36 +13,13 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/authContext"
 import { useLocale } from "next-intl"
 import { localized } from "@/lib/localeName"
-import type { FlashSaleInfo } from "@/lib/flashSalePrice"
+import { optimizeImageUrl } from "@/lib/imageUtils"
+import {
+  getProductCardState,
+  type ProductCardProps,
+} from "@/lib/productCard"
 
-export type ProductCardProps = {
-  productId: string
-  slug: string
-  name: string
-  nameEn: string
-  price: number
-  stock?: number
-  imageUrl?: string | null
-  categoryName?: string
-  vendorName?: string
-  vendorSlug?: string
-  vendorId?: string
-  avgRating?: number
-  reviewCount?: number
-  createdAt?: string | Date
-  isLoggedIn?: boolean
-  wishlist?: {
-    isWishlisted: boolean
-  }
-  variants?: VariantOption[]
-  flashSale?: FlashSaleInfo | null
-  priority?: boolean
-}
-
-function optimizeCloudinaryUrl(url: string): string {
-  if (!url.includes("res.cloudinary.com")) return url
-  return url.replace("/upload/", "/upload/w_400,f_auto,q_auto/")
-}
+export type { ProductCardProps } from "@/lib/productCard"
 
 export default function ProductCard({
   productId,
@@ -58,12 +35,13 @@ export default function ProductCard({
   vendorId,
   avgRating,
   reviewCount,
-  createdAt,
   isLoggedIn: isLoggedInProp,
+  isWishlisted,
   wishlist,
   variants,
   flashSale,
   priority = false,
+  isNew = false,
 }: ProductCardProps) {
   const auth = useAuth()
   const isLoggedIn = isLoggedInProp ?? auth.isLoggedIn
@@ -73,52 +51,44 @@ export default function ProductCard({
   const [cartStatus, setCartStatus] = useState<"idle" | "success">("idle")
   const [isPending, startTransition] = useTransition()
   const [showVariantModal, setShowVariantModal] = useState(false)
-
-  const isNew =
-    createdAt &&
-    Date.now() - new Date(createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
-  const outOfStock = stock !== undefined && stock === 0
-  const optimizedImage = imageUrl ? optimizeCloudinaryUrl(imageUrl) : null
-  const hasVariants = variants && variants.length > 0
-
-  // Display price logic
-  // - With variants: show "from ₾X" where X is lowest variant price (with flash discount applied)
-  // - Without variants: use product price (or flash sale price)
-  let displayPrice: number
-  let originalDisplayPrice: number
-  if (hasVariants && variants) {
-    const variantPrices = variants.map((v) =>
-      flashSale && flashSale.discountType === "PERCENTAGE"
-        ? Math.max(0, v.price * (1 - flashSale.discountValue / 100))
-        : flashSale && flashSale.discountType === "FIXED"
-          ? Math.max(0, v.price - flashSale.discountValue)
-          : v.price
-    )
-    displayPrice = Math.min(...variantPrices)
-    originalDisplayPrice = Math.min(...variants.map((v) => v.price))
-  } else {
-    displayPrice = flashSale ? flashSale.salePrice : price
-    originalDisplayPrice = price
-  }
-  const isDiscounted = flashSale != null && displayPrice < originalDisplayPrice
-  const discountBadge = flashSale
-    ? flashSale.discountType === "PERCENTAGE"
-      ? `-${flashSale.discountValue}%`
-      : `-₾${flashSale.discountValue}`
-    : null
+  const optimizedImage = imageUrl ? optimizeImageUrl(imageUrl, 400) : null
+  const {
+    hasVariants,
+    variantCount,
+    outOfStock,
+    displayPrice,
+    originalDisplayPrice,
+    isDiscounted,
+    discountBadge,
+  } = getProductCardState({
+    price,
+    stock,
+    variants,
+    flashSale,
+  })
+  const canGuestAddToCart = Boolean(vendorId && vendorName && vendorSlug)
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    if (outOfStock) return
 
-    // If product has variants, open picker modal
     if (hasVariants) {
+      if (outOfStock) return
+      if (!isLoggedIn && !canGuestAddToCart) {
+        router.push(`/products/${slug}`)
+        return
+      }
       setShowVariantModal(true)
       return
     }
 
-    // No variants — direct add
+    if (outOfStock) return
+
+    if (!isLoggedIn && !canGuestAddToCart) {
+      router.push(`/products/${slug}`)
+      return
+    }
+
     if (isLoggedIn) {
       startTransition(async () => {
         try {
@@ -197,19 +167,19 @@ export default function ProductCard({
             )}
             {hasVariants && (
               <span className="inline-flex items-center rounded-md bg-blue-500/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm">
-                {variants.length} variants
+                {variantCount} variants
               </span>
             )}
           </div>
         </div>
 
         {/* Action buttons */}
-        <div className="absolute top-2 right-2 z-20 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+        <div className="absolute top-2 right-2 z-20 flex flex-col gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity duration-200 pointer-events-none">
           <div className="pointer-events-auto">
             <button
               type="button"
               onClick={handleAddToCart}
-              disabled={isPending || outOfStock}
+              disabled={isPending || outOfStock || (!isLoggedIn && !canGuestAddToCart)}
               className={`w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm border border-gray-200/60 shadow-sm transition-all disabled:opacity-40 ${
                 cartStatus === "success"
                   ? "bg-green-500 text-white"
@@ -231,7 +201,7 @@ export default function ProductCard({
           <div className="pointer-events-auto">
             <WishlistButton
               productId={productId}
-              isWishlisted={wishlist?.isWishlisted ?? false}
+              isWishlisted={isWishlisted ?? wishlist?.isWishlisted ?? false}
               isLoggedIn={isLoggedIn}
               size="sm"
             />
@@ -295,7 +265,7 @@ export default function ProductCard({
           productName={name}
           productNameEn={nameEn}
           productImage={imageUrl ?? null}
-          variants={variants}
+          variants={variants ?? []}
           isLoggedIn={isLoggedIn}
           vendorId={vendorId ?? ""}
           vendorName={vendorName ?? ""}

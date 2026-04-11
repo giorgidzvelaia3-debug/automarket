@@ -6,6 +6,8 @@ import { localized } from "@/lib/localeName"
 import { prisma } from "@/lib/prisma"
 import ProductGrid from "@/components/store/ProductGrid"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
+import { getWishlistIds } from "@/lib/actions/wishlist"
+import { toProductCardProps } from "@/lib/productCard"
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>
@@ -46,6 +48,7 @@ export default async function CategoryPage(props: {
           price: true,
           stock: true,
           createdAt: true,
+          vendorId: true,
           images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
           vendor: { select: { name: true, slug: true } },
           reviews: { select: { rating: true } },
@@ -57,8 +60,11 @@ export default async function CategoryPage(props: {
 
   if (!category) notFound()
 
-  const locale = await getLocale()
-  const flashSaleMap = await getFlashSalesForProducts(category.products.map((p) => p.id))
+  const [locale, flashSaleMap, wishlistIds] = await Promise.all([
+    getLocale(),
+    getFlashSalesForProducts(category.products.map((p) => p.id)),
+    getWishlistIds(),
+  ])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -75,26 +81,12 @@ export default async function CategoryPage(props: {
       </div>
 
       <ProductGrid
-        products={category.products.map((p) => {
-          const rc = p.reviews.length
-          const avg = rc > 0 ? p.reviews.reduce((s, r) => s + r.rating, 0) / rc : undefined
-          return {
-            productId: p.id,
-            slug: p.slug,
-            name: p.name,
-            nameEn: p.nameEn,
-            price: Number(p.price),
-            stock: p.stock,
-            imageUrl: p.images[0]?.url,
-            vendorName: p.vendor.name,
-            vendorSlug: p.vendor.slug,
-            avgRating: avg,
-            reviewCount: rc > 0 ? rc : undefined,
-            createdAt: p.createdAt.toISOString(),
-            variants: p.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })),
-            flashSale: flashSaleMap.get(p.id) ?? null,
-          }
-        })}
+        products={category.products.map((product) =>
+          toProductCardProps(product, {
+            flashSale: flashSaleMap.get(product.id) ?? null,
+            isWishlisted: wishlistIds.has(product.id),
+          })
+        )}
         emptyMessage="No products in this category yet."
       />
     </div>

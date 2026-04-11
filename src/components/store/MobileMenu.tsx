@@ -19,6 +19,7 @@ export default function MobileMenu({
   userEmail,
   userRole,
   wishlistCount,
+  wishlistHref,
 }: {
   isOpen: boolean
   onClose: () => void
@@ -28,6 +29,7 @@ export default function MobileMenu({
   userEmail?: string | null
   userRole?: string
   wishlistCount: number
+  wishlistHref: string
 }) {
   const t = useTranslations("Nav")
   const locale = useLocale()
@@ -60,6 +62,8 @@ export default function MobileMenu({
   }, [isOpen, onClose])
 
   const userInitial = (userName ?? userEmail ?? "U").charAt(0).toUpperCase()
+  const isWishlistActive =
+    pathname === "/wishlist" || pathname.startsWith("/account/wishlist")
 
   return (
     <>
@@ -133,6 +137,15 @@ export default function MobileMenu({
             <NavLink href="/shop" icon={ShopIcon} label={t("shop")} active={pathname.startsWith("/shop")} />
             <NavLink href="/flash-sales" icon={SalesIcon} label={t("sales")} active={pathname.startsWith("/flash-sales")} />
             <NavLink href="/vendors" icon={VendorsIcon} label={t("vendors")} active={pathname.startsWith("/vendors")} />
+            {!isLoggedIn && (
+              <NavLink
+                href={wishlistHref}
+                icon={HeartIcon}
+                label={t("wishlist")}
+                badge={wishlistCount > 0 ? wishlistCount : undefined}
+                active={isWishlistActive}
+              />
+            )}
           </div>
 
           {/* Categories accordion */}
@@ -167,11 +180,11 @@ export default function MobileMenu({
           {isLoggedIn && (
             <div className="mt-3 pt-3 border-t border-gray-100 px-3 space-y-0.5">
               <NavLink
-                href="/account/wishlist"
+                href={wishlistHref}
                 icon={HeartIcon}
                 label={t("wishlist")}
                 badge={wishlistCount > 0 ? wishlistCount : undefined}
-                active={pathname.startsWith("/account/wishlist")}
+                active={isWishlistActive}
               />
               <NavLink href="/account/orders" icon={OrdersIcon} label={t("orders")} active={pathname.startsWith("/account/orders")} />
               <NavLink href="/account/profile" icon={ProfileIcon} label={t("profile")} active={pathname.startsWith("/account/profile")} />

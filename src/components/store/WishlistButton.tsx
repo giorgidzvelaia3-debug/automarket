@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useOptimistic, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toggleWishlist } from "@/lib/actions/wishlist"
 import { useAuth } from "@/lib/authContext"
+import { useGuestWishlist } from "@/lib/guestWishlist"
 
 export default function WishlistButton({
   productId,
@@ -17,29 +18,40 @@ export default function WishlistButton({
   size?: "sm" | "md"
 }) {
   const auth = useAuth()
+  const guestWishlist = useGuestWishlist()
   const isLoggedIn = isLoggedInProp ?? auth.isLoggedIn
-  const [wishlisted, setWishlisted] = useState(initialWishlisted)
+  const [authWishlisted, setAuthWishlisted] = useOptimistic(
+    initialWishlisted,
+    (_currentState, nextState: boolean) => nextState
+  )
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+
+  const wishlisted = isLoggedIn
+    ? authWishlisted
+    : guestWishlist.mounted
+      ? guestWishlist.isWishlisted(productId)
+      : initialWishlisted
 
   function handleClick(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
 
     if (!isLoggedIn) {
-      router.push("/login")
+      guestWishlist.toggle(productId)
       return
     }
 
-    // Optimistic update
-    setWishlisted((prev) => !prev)
+    const previous = authWishlisted
+    setAuthWishlisted(!previous)
 
     startTransition(async () => {
       try {
         const result = await toggleWishlist(productId)
-        setWishlisted(result)
+        setAuthWishlisted(result)
+        router.refresh()
       } catch {
-        setWishlisted(wishlisted)
+        setAuthWishlisted(previous)
       }
     })
   }
@@ -51,13 +63,14 @@ export default function WishlistButton({
     <button
       type="button"
       onClick={handleClick}
-      disabled={isPending}
+      disabled={isPending || (!isLoggedIn && !guestWishlist.mounted)}
       className={`${btnSize} flex items-center justify-center rounded-full transition-all ${
         wishlisted
           ? "bg-red-50 text-red-500 hover:bg-red-100"
           : "bg-white/80 text-gray-400 hover:text-red-500 hover:bg-red-50"
       } backdrop-blur-sm border border-gray-200/60 shadow-sm disabled:opacity-60`}
       aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+      aria-pressed={wishlisted}
     >
       <svg
         className={iconSize}

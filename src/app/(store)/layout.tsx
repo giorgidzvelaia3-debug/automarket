@@ -1,8 +1,9 @@
 import { getLocale, getTranslations } from "next-intl/server"
-import { auth, signOut } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getCachedCategories } from "@/lib/cache/categories"
 import CartMerge from "@/components/store/CartMerge"
+import WishlistMerge from "@/components/store/WishlistMerge"
 import { CompareProvider } from "@/lib/compareContext"
 import { CartDrawerProvider } from "@/lib/cartDrawerContext"
 import { AuthModalProvider } from "@/lib/authModalContext"
@@ -12,6 +13,7 @@ import CartDrawer from "@/components/store/CartDrawer"
 import NavigationProgress from "@/components/store/NavigationProgress"
 import ScrollToTop from "@/components/store/ScrollToTop"
 import { AuthProvider } from "@/lib/authContext"
+import { GuestWishlistProvider } from "@/lib/guestWishlist"
 import Navbar from "./Navbar"
 import Link from "next/link"
 
@@ -44,6 +46,7 @@ export default async function StoreLayout({
     <AuthModalProvider>
     <CartDrawerProvider>
     <CompareProvider>
+    <GuestWishlistProvider>
     <div className="min-h-screen flex flex-col bg-gray-50">
       <NavigationProgress />
       <ScrollToTop />
@@ -64,6 +67,7 @@ export default async function StoreLayout({
 
       {/* Merge guest cart after login */}
       {isLoggedIn && <CartMerge />}
+      {isLoggedIn && <WishlistMerge />}
 
       {/* Main content */}
       <main className="flex-1">
@@ -96,6 +100,7 @@ export default async function StoreLayout({
       {/* Auth modal */}
       {!isLoggedIn && <AuthModal />}
     </div>
+    </GuestWishlistProvider>
     </CompareProvider>
     </CartDrawerProvider>
     </AuthModalProvider>

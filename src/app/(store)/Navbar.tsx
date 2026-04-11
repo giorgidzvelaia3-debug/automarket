@@ -9,6 +9,7 @@ import CartButton from "@/components/store/CartButton"
 import MobileMenu from "@/components/store/MobileMenu"
 import { signOut } from "next-auth/react"
 import { useAuthModal } from "@/lib/authModalContext"
+import { useGuestWishlist } from "@/lib/guestWishlist"
 import { localized } from "@/lib/localeName"
 
 type Category = { id: string; slug: string; nameEn: string; name: string }
@@ -43,6 +44,7 @@ export default function Navbar({
   signInLabel,
 }: NavbarProps) {
   const authModal = useAuthModal()
+  const guestWishlist = useGuestWishlist()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [catOpen, setCatOpen] = useState(false)
@@ -64,6 +66,8 @@ export default function Navbar({
   }, [])
 
   const userInitial = (userName ?? userEmail ?? "U").charAt(0).toUpperCase()
+  const effectiveWishlistCount = isLoggedIn ? wishlistCount : guestWishlist.count
+  const wishlistHref = isLoggedIn ? "/account/wishlist" : "/wishlist"
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -152,22 +156,20 @@ export default function Navbar({
             <LanguageToggle locale={locale} />
 
             {/* Wishlist — icon with badge */}
-            {isLoggedIn && (
-              <Link
-                href="/account/wishlist"
-                className="relative p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors rounded-lg hover:bg-gray-50"
-                aria-label="Wishlist"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                </svg>
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold">
-                    {wishlistCount > 99 ? "99+" : wishlistCount}
-                  </span>
-                )}
-              </Link>
-            )}
+            <Link
+              href={wishlistHref}
+              className="relative p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors rounded-lg hover:bg-gray-50"
+              aria-label="Wishlist"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+              </svg>
+              {effectiveWishlistCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold">
+                  {effectiveWishlistCount > 99 ? "99+" : effectiveWishlistCount}
+                </span>
+              )}
+            </Link>
 
             {/* Cart — visible to all users */}
             {isBuyer ? (
@@ -290,7 +292,8 @@ export default function Navbar({
         userName={userName}
         userEmail={userEmail}
         userRole={userRole}
-        wishlistCount={wishlistCount}
+        wishlistCount={effectiveWishlistCount}
+        wishlistHref={wishlistHref}
       />
     </header>
   )

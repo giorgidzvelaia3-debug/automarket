@@ -217,15 +217,14 @@ export default function CartDrawer() {
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           {activeTab === "cart" ? (
-            <CartTab
-              items={cartItems}
-              loading={loading}
-              isPending={isPending}
-              locale={locale}
-              subtotal={subtotal}
-              shippingProgress={shippingProgress}
-              awayFromFree={awayFromFree}
-              onRemove={handleRemove}
+              <CartTab
+                items={cartItems}
+                loading={loading}
+                isPending={isPending}
+                locale={locale}
+                shippingProgress={shippingProgress}
+                awayFromFree={awayFromFree}
+                onRemove={handleRemove}
               onQuantity={handleQuantity}
               onClose={close}
               t={t}
@@ -278,7 +277,6 @@ function CartTab({
   loading,
   isPending,
   locale,
-  subtotal,
   shippingProgress,
   awayFromFree,
   onRemove,
@@ -290,7 +288,6 @@ function CartTab({
   loading: boolean
   isPending: boolean
   locale: string
-  subtotal: number
   shippingProgress: number
   awayFromFree: number
   onRemove: (item: CartItem) => void
@@ -473,16 +470,14 @@ function RecentlyViewedTab({
                 <span className="text-gray-300 text-2xl">□</span>
               </div>
             )}
-            {isLoggedIn && (
-              <div className="absolute top-1.5 right-1.5 z-10" onClick={(e) => e.preventDefault()}>
-                <WishlistButton
-                  productId={item.id}
-                  isWishlisted={false}
-                  isLoggedIn={isLoggedIn}
-                  size="sm"
-                />
-              </div>
-            )}
+            <div className="absolute top-1.5 right-1.5 z-10" onClick={(e) => e.preventDefault()}>
+              <WishlistButton
+                productId={item.id}
+                isWishlisted={false}
+                isLoggedIn={isLoggedIn}
+                size="sm"
+              />
+            </div>
           </div>
           <div className="p-2.5">
             <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">

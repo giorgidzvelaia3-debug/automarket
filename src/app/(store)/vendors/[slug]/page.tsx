@@ -2,12 +2,13 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getLocale } from "next-intl/server"
-import { localized } from "@/lib/localeName"
 import { prisma } from "@/lib/prisma"
 import { StarDisplay } from "@/components/store/StarRating"
 import ProductGrid from "@/components/store/ProductGrid"
 import VendorBadges from "@/components/store/VendorBadges"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
+import { getWishlistIds } from "@/lib/actions/wishlist"
+import { toProductCardProps } from "@/lib/productCard"
 // Direct query instead of cache — prevents caching null results as 404
 
 export async function generateMetadata(props: {
@@ -89,16 +90,16 @@ export default async function VendorStorePage(props: {
 
   if (!vendor || vendor.status !== "APPROVED") notFound()
 
-  const locale = await getLocale()
-
   // Aggregate vendor-wide rating from DB (not from loaded reviews)
-  const [vendorRatingAgg, flashSaleMap] = await Promise.all([
+  const [locale, vendorRatingAgg, flashSaleMap, wishlistIds] = await Promise.all([
+    getLocale(),
     prisma.review.aggregate({
       where: { product: { vendorId: vendor.id } },
       _avg: { rating: true },
       _count: { rating: true },
     }),
     getFlashSalesForProducts(vendor.products.map((p) => p.id)),
+    getWishlistIds(),
   ])
 
   const totalReviews = vendorRatingAgg._count.rating
@@ -261,23 +262,18 @@ export default async function VendorStorePage(props: {
         {/* Products grid */}
         <ProductGrid
           columns="5"
-          products={products.map((p) => ({
-            productId: p.id,
-            slug: p.slug,
-            name: p.name,
-            nameEn: p.nameEn,
-            price: Number(p.price),
-            stock: p.stock,
-            imageUrl: p.images[0]?.url,
-            categoryName: localized(locale, p.category.name, p.category.nameEn),
-            vendorName: vendor.name,
-            vendorSlug: slug,
-            avgRating: p.reviewCount > 0 ? p.avgRating : undefined,
-            reviewCount: p.reviewCount > 0 ? p.reviewCount : undefined,
-            createdAt: p.createdAt.toISOString(),
-            variants: p.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })),
-            flashSale: flashSaleMap.get(p.id) ?? null,
-          }))}
+          products={products.map((product) =>
+            toProductCardProps(product, {
+              locale,
+              vendorName: vendor.name,
+              vendorSlug: slug,
+              vendorId: vendor.id,
+              flashSale: flashSaleMap.get(product.id) ?? null,
+              isWishlisted: wishlistIds.has(product.id),
+              avgRating: product.avgRating,
+              reviewCount: product.reviewCount,
+            })
+          )}
           emptyMessage="This vendor has no active products yet."
         />
       </div>
