@@ -55,7 +55,7 @@ export default function CartDrawer() {
             name: item.product.name,
             nameEn: item.product.nameEn,
             image: item.variant?.images?.[0]?.url ?? item.product.images[0]?.url ?? null,
-            price: Number(item.variant?.price ?? item.product.price),
+            price: Number(item.price ?? item.variant?.price ?? item.product.price),
             quantity: item.quantity,
             stock: item.variant?.stock ?? item.product.stock,
             variantName: item.variant?.name,

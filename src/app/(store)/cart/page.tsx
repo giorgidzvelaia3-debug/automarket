@@ -121,7 +121,7 @@ export default async function CartPage() {
 
   let hasViolations = false
   for (const { vendor, items: vItems } of byVendor.values()) {
-    const total = vItems.reduce((s, i) => s + (i.variant?.price ?? i.product.price) * i.quantity, 0)
+    const total = vItems.reduce((s, i) => s + (i.price ?? i.variant?.price ?? i.product.price) * i.quantity, 0)
     const qty = vItems.reduce((s, i) => s + i.quantity, 0)
     if (computeWarnings(vendor, total, qty).length > 0) {
       hasViolations = true
