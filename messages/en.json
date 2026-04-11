@@ -57,7 +57,11 @@
     "bundleTotal": "Bundle total",
     "bundleSaved": "You save {amount}",
     "bundleAddAll": "Add all to cart",
-    "bundleAdded": "Added"
+    "bundleAdded": "Added",
+    "bundleChooseVariant": "Choose variant",
+    "bundleMoreToSelect": "more to select",
+    "bundleNextProduct": "Next product",
+    "bundleConfirmAdd": "Add to cart"
   },
   "Cart": {
     "bag": "Shopping Bag",

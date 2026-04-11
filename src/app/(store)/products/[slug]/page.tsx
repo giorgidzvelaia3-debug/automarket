@@ -93,7 +93,11 @@ export default async function ProductPage(props: {
     getBundleItems(product.id),
   ])
 
-  const carouselFlashSaleMap = await getFlashSalesForProducts([...similarProducts.map((p) => p.id), ...vendorProducts.map((p) => p.id)])
+  const bundleProductIds = bundleItems.map((b) => b.bundleProduct.id)
+  const [carouselFlashSaleMap, bundleFlashSaleMap] = await Promise.all([
+    getFlashSalesForProducts([...similarProducts.map((p) => p.id), ...vendorProducts.map((p) => p.id)]),
+    bundleProductIds.length > 0 ? getFlashSalesForProducts(bundleProductIds) : Promise.resolve(new Map()),
+  ])
 
   const avgRating = ratingAgg?._avg?.rating ?? 0
   const existingReview = userId ? reviews.find((r) => r.userId === userId) : undefined
@@ -127,8 +131,9 @@ export default async function ProductPage(props: {
           <ImageGallery images={product.images} altBase={product.nameEn} />
           {bundleItems.length > 0 && (
             <BundleSection
-              mainProduct={{ id: product.id, name: product.name, nameEn: product.nameEn, price: priceNum, image: product.images[0]?.url ?? null, vendorId: product.vendorId, vendorName: product.vendor.name, vendorSlug: product.vendor.slug }}
-              bundles={bundleItems.map((b) => ({ id: b.id, discountPercent: b.discountPercent, bundleProduct: { id: b.bundleProduct.id, name: b.bundleProduct.name, nameEn: b.bundleProduct.nameEn, price: Number(b.bundleProduct.price), stock: b.bundleProduct.stock, slug: b.bundleProduct.slug, image: b.bundleProduct.images[0]?.url ?? null, vendorId: product.vendorId, vendorName: product.vendor.name, vendorSlug: product.vendor.slug, variants: b.bundleProduct.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })) } }))}
+              mainProduct={{ id: product.id, name: product.name, nameEn: product.nameEn, price: priceNum, stock: product.stock, slug, image: product.images[0]?.url ?? null, vendorId: product.vendorId, vendorName: product.vendor.name, vendorSlug: product.vendor.slug, variants: product.variants.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })) }}
+              mainFlashSale={activeSale}
+              bundles={bundleItems.map((b) => ({ id: b.id, discountPercent: b.discountPercent, flashSale: bundleFlashSaleMap.get(b.bundleProduct.id) ?? null, bundleProduct: { id: b.bundleProduct.id, name: b.bundleProduct.name, nameEn: b.bundleProduct.nameEn, price: Number(b.bundleProduct.price), stock: b.bundleProduct.stock, slug: b.bundleProduct.slug, image: b.bundleProduct.images[0]?.url ?? null, vendorId: product.vendorId, vendorName: product.vendor.name, vendorSlug: product.vendor.slug, variants: b.bundleProduct.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })) } }))}
             />
           )}
         </div>

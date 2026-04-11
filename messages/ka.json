@@ -57,7 +57,11 @@
     "bundleTotal": "ჯამური ფასი",
     "bundleSaved": "დაზოგე {amount}",
     "bundleAddAll": "ყველას დამატება კალათაში",
-    "bundleAdded": "დამატებულია"
+    "bundleAdded": "დამატებულია",
+    "bundleChooseVariant": "აირჩიეთ ვარიანტი",
+    "bundleMoreToSelect": "პროდუქტი დარჩა",
+    "bundleNextProduct": "შემდეგი პროდუქტი",
+    "bundleConfirmAdd": "კალათაში დამატება"
   },
   "Cart": {
     "bag": "კალათა",
