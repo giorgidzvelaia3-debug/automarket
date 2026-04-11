@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
-import { addToCart } from "@/lib/actions/cart"
-import { addToGuestCart } from "@/lib/guestCart"
+import { useState, useEffect } from "react"
+import { useAddToCart } from "@/lib/useAddToCart"
 import { applyDiscount, type FlashSaleInfo } from "@/lib/flashSalePrice"
 
 export type VariantOption = {
@@ -44,9 +43,10 @@ export default function VariantPickerModal({
   const [selectedId, setSelectedId] = useState(
     variants[defaultIdx >= 0 ? defaultIdx : 0]?.id ?? ""
   )
-  const [isPending, startTransition] = useTransition()
 
   const selected = variants.find((v) => v.id === selectedId)
+
+  const { add, isPending } = useAddToCart(isLoggedIn, { onSuccess })
 
   // Close on Escape
   useEffect(() => {
@@ -64,35 +64,23 @@ export default function VariantPickerModal({
   function handleAdd() {
     if (!selected || selected.stock === 0) return
 
-    if (isLoggedIn) {
-      startTransition(async () => {
-        try {
-          await addToCart(productId, 1, selected.id)
-          window.dispatchEvent(new Event("cart-change"))
-          window.dispatchEvent(new Event("cart-drawer-open"))
-          onSuccess()
-        } catch { /* ignore */ }
-      })
-    } else {
-      addToGuestCart({
-        productId,
+    add({
+      productId,
+      variantId: selected.id,
+      guest: {
         variantId: selected.id,
         variantName: selected.name,
         variantNameEn: selected.nameEn,
         vendorId,
         vendorName,
         vendorSlug,
-        quantity: 1,
         price: flashSale ? applyDiscount(selected.price, flashSale.discountType, flashSale.discountValue) : selected.price,
         name: productName,
         nameEn: productNameEn,
         image: productImage,
         stock: selected.stock,
-      })
-      window.dispatchEvent(new Event("guest-cart-change"))
-      window.dispatchEvent(new Event("cart-drawer-open"))
-      onSuccess()
-    }
+      },
+    })
   }
 
   return (

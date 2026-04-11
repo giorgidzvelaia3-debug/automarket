@@ -6,9 +6,8 @@ import { StarDisplay } from "./StarRating"
 import WishlistButton from "./WishlistButton"
 import CompareButton from "./CompareButton"
 import VariantPickerModal from "./VariantPickerModal"
-import { addToCart } from "@/lib/actions/cart"
-import { addToGuestCart } from "@/lib/guestCart"
-import { useState, useTransition } from "react"
+import { useAddToCart } from "@/lib/useAddToCart"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/authContext"
 import { useLocale } from "next-intl"
@@ -48,9 +47,8 @@ export default function ProductCard({
   const router = useRouter()
   const locale = useLocale()
   const displayName = localized(locale, name, nameEn)
-  const [cartStatus, setCartStatus] = useState<"idle" | "success">("idle")
-  const [isPending, startTransition] = useTransition()
   const [showVariantModal, setShowVariantModal] = useState(false)
+  const { add, status: cartStatus, isPending } = useAddToCart(isLoggedIn, { timeout: 2000 })
   const optimizedImage = imageUrl ? optimizeImageUrl(imageUrl, 400) : null
   const {
     hasVariants,
@@ -89,40 +87,19 @@ export default function ProductCard({
       return
     }
 
-    if (isLoggedIn) {
-      startTransition(async () => {
-        try {
-          await addToCart(productId, 1)
-          setCartStatus("success")
-          window.dispatchEvent(new Event("cart-change"))
-          window.dispatchEvent(new Event("cart-drawer-open"))
-          setTimeout(() => setCartStatus("idle"), 2000)
-        } catch { /* ignore */ }
-      })
-    } else {
-      addToGuestCart({
-        productId,
+    add({
+      productId,
+      guest: {
         vendorId: vendorId ?? "",
         vendorName: vendorName ?? "",
         vendorSlug: vendorSlug ?? "",
-        quantity: 1,
         price: displayPrice,
         name,
         nameEn,
         image: imageUrl ?? null,
         stock: stock ?? 0,
-      })
-      window.dispatchEvent(new Event("guest-cart-change"))
-      window.dispatchEvent(new Event("cart-drawer-open"))
-      setCartStatus("success")
-      setTimeout(() => setCartStatus("idle"), 2000)
-    }
-  }
-
-  function handleVariantSuccess() {
-    setShowVariantModal(false)
-    setCartStatus("success")
-    setTimeout(() => setCartStatus("idle"), 2000)
+      },
+    })
   }
 
   return (
@@ -272,7 +249,7 @@ export default function ProductCard({
           vendorSlug={vendorSlug ?? ""}
           flashSale={flashSale}
           onClose={() => setShowVariantModal(false)}
-          onSuccess={handleVariantSuccess}
+          onSuccess={() => setShowVariantModal(false)}
         />
       )}
     </>

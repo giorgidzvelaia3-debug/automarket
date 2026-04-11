@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useTransition, useOptimistic } from "react"
 import { useRouter } from "next/navigation"
-import { addToCart } from "@/lib/actions/cart"
-import { addToGuestCart } from "@/lib/guestCart"
 import { toggleWishlist } from "@/lib/actions/wishlist"
 import { useAuth } from "@/lib/authContext"
+import { useAddToCart } from "@/lib/useAddToCart"
 import { useGuestWishlist } from "@/lib/guestWishlist"
 import { useCompare, type CompareProduct } from "@/lib/compareContext"
 import VariantPickerModal, { type VariantOption } from "@/components/store/VariantPickerModal"
@@ -52,8 +51,7 @@ export default function StickyMobileBar({
   const [originalPrice, setOriginalPrice] = useState(basePrice)
   const [stock, setStock] = useState(baseStock)
   const [hasFlash, setHasFlash] = useState(initialHasFlashSale)
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
-  const [isPending, startTransition] = useTransition()
+  const { add, status, isPending } = useAddToCart(isLoggedIn)
   const [visible, setVisible] = useState(true)
 
   // Hide sticky bar when mobile product-actions panel is on screen
@@ -85,42 +83,19 @@ export default function StickyMobileBar({
       setShowVariantPicker(true)
       return
     }
-    if (isLoggedIn) {
-      startTransition(async () => {
-        try {
-          await addToCart(productId, 1)
-          setStatus("success")
-          window.dispatchEvent(new Event("cart-change"))
-          window.dispatchEvent(new Event("cart-drawer-open"))
-          setTimeout(() => setStatus("idle"), 2500)
-        } catch {
-          setStatus("error")
-          setTimeout(() => setStatus("idle"), 2500)
-        }
-      })
-    } else {
-      try {
-        addToGuestCart({
-          productId,
-          vendorId,
-          vendorName,
-          vendorSlug,
-          quantity: 1,
-          price,
-          name,
-          nameEn,
-          image,
-          stock,
-        })
-        setStatus("success")
-        window.dispatchEvent(new Event("guest-cart-change"))
-        window.dispatchEvent(new Event("cart-drawer-open"))
-        setTimeout(() => setStatus("idle"), 2500)
-      } catch {
-        setStatus("error")
-        setTimeout(() => setStatus("idle"), 2500)
-      }
-    }
+    add({
+      productId,
+      guest: {
+        vendorId,
+        vendorName,
+        vendorSlug,
+        price,
+        name,
+        nameEn,
+        image,
+        stock,
+      },
+    })
   }
 
   const showStrikethrough = hasFlash && originalPrice > price
@@ -267,11 +242,7 @@ export default function StickyMobileBar({
         vendorSlug={vendorSlug}
         flashSale={flashSale}
         onClose={() => setShowVariantPicker(false)}
-        onSuccess={() => {
-          setShowVariantPicker(false)
-          setStatus("success")
-          setTimeout(() => setStatus("idle"), 2500)
-        }}
+        onSuccess={() => setShowVariantPicker(false)}
       />
     )}
     </>

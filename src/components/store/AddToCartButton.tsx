@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { addToCart } from "@/lib/actions/cart"
-import { addToGuestCart } from "@/lib/guestCart"
+import { useState } from "react"
+import { useAddToCart } from "@/lib/useAddToCart"
 
 export default function AddToCartButton({
   productId,
@@ -36,8 +35,7 @@ export default function AddToCartButton({
   labels?: { addToCart: string; added: string; qty: string; outOfStock: string; error: string }
 }) {
   const [quantity, setQuantity] = useState(1)
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
-  const [isPending, startTransition] = useTransition()
+  const { add, status, isPending } = useAddToCart(isLoggedIn)
 
   const maxQty = Math.min(stock, 10)
 
@@ -61,45 +59,24 @@ export default function AddToCartButton({
   }
 
   function handleAdd() {
-    if (isLoggedIn) {
-      startTransition(async () => {
-        try {
-          await addToCart(productId, quantity, variantId)
-          setStatus("success")
-          window.dispatchEvent(new Event("cart-change"))
-          window.dispatchEvent(new Event("cart-drawer-open"))
-          setTimeout(() => setStatus("idle"), 2500)
-        } catch {
-          setStatus("error")
-          setTimeout(() => setStatus("idle"), 2500)
-        }
-      })
-    } else {
-      try {
-        addToGuestCart({
-          productId,
-          variantId: variantId ?? null,
-          variantName: variantName ?? null,
-          variantNameEn: variantNameEn ?? null,
-          vendorId: vendorId ?? "",
-          vendorName: vendorName ?? "",
-          vendorSlug: vendorSlug ?? "",
-          quantity,
-          price: price ?? 0,
-          name: name ?? "",
-          nameEn: nameEn ?? "",
-          image: image ?? null,
-          stock,
-        })
-        setStatus("success")
-        window.dispatchEvent(new Event("guest-cart-change"))
-        window.dispatchEvent(new Event("cart-drawer-open"))
-        setTimeout(() => setStatus("idle"), 2500)
-      } catch {
-        setStatus("error")
-        setTimeout(() => setStatus("idle"), 2500)
-      }
-    }
+    add({
+      productId,
+      quantity,
+      variantId,
+      guest: {
+        variantId: variantId ?? null,
+        variantName: variantName ?? null,
+        variantNameEn: variantNameEn ?? null,
+        vendorId: vendorId ?? "",
+        vendorName: vendorName ?? "",
+        vendorSlug: vendorSlug ?? "",
+        price: price ?? 0,
+        name: name ?? "",
+        nameEn: nameEn ?? "",
+        image: image ?? null,
+        stock,
+      },
+    })
   }
 
   return (
