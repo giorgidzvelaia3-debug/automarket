@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition } from "react"
 import { addToCart } from "@/lib/actions/cart"
 import { addToGuestCart } from "@/lib/guestCart"
+import { applyDiscount, type FlashSaleInfo } from "@/lib/flashSalePrice"
 
 export type VariantOption = {
   id: string
@@ -22,6 +23,7 @@ export default function VariantPickerModal({
   vendorId,
   vendorName,
   vendorSlug,
+  flashSale,
   onClose,
   onSuccess,
 }: {
@@ -34,6 +36,7 @@ export default function VariantPickerModal({
   vendorId: string
   vendorName: string
   vendorSlug: string
+  flashSale?: FlashSaleInfo | null
   onClose: () => void
   onSuccess: () => void
 }) {
@@ -77,7 +80,7 @@ export default function VariantPickerModal({
         vendorName,
         vendorSlug,
         quantity: 1,
-        price: selected.price,
+        price: flashSale ? applyDiscount(selected.price, flashSale.discountType, flashSale.discountValue) : selected.price,
         name: productName,
         nameEn: `${productNameEn} — ${selected.nameEn}`,
         image: productImage,
@@ -165,10 +168,16 @@ export default function VariantPickerModal({
         </div>
 
         {/* Selected variant info */}
-        {selected && (
+        {selected && (() => {
+          const salePrice = flashSale ? applyDiscount(selected.price, flashSale.discountType, flashSale.discountValue) : selected.price
+          const hasDiscount = salePrice < selected.price
+          return (
           <div className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3">
             <div>
-              <p className="text-lg font-bold text-gray-900">₾{selected.price.toFixed(2)}</p>
+              <div className="flex items-baseline gap-2">
+                <p className={`text-lg font-bold ${hasDiscount ? "text-red-600" : "text-gray-900"}`}>₾{salePrice.toFixed(2)}</p>
+                {hasDiscount && <p className="text-sm text-gray-400 line-through">₾{selected.price.toFixed(2)}</p>}
+              </div>
               <p className="text-xs text-gray-400">{selected.nameEn}</p>
             </div>
             <div className="flex items-center gap-1.5">
@@ -178,7 +187,8 @@ export default function VariantPickerModal({
               </span>
             </div>
           </div>
-        )}
+          )
+        })()}
 
         {/* Add to Cart button */}
         <button

@@ -191,7 +191,7 @@ export default function BundleSection({
       vendorName: mainProduct.vendorName,
       vendorSlug: mainProduct.vendorSlug,
       quantity: 1,
-      price: mainVariant ? mainVariant.price : mainProduct.price,
+      price: applyFlashDiscount(mainVariant ? mainVariant.price : mainProduct.price, mainFlashSale),
       name: mainProduct.name,
       nameEn: mainProduct.nameEn,
       image: mainProduct.image,
@@ -200,8 +200,8 @@ export default function BundleSection({
     for (const b of selectedBundles) {
       const vid = variantSelections.get(b.bundleProduct.id)
       const variant = vid ? b.bundleProduct.variants?.find((v) => v.id === vid) : undefined
-      const basePrice = variant ? variant.price : getEffectivePrice(b.bundleProduct)
-      const discountedPrice = basePrice * (1 - b.discountPercent / 100)
+      const flashPrice = applyFlashDiscount(variant ? variant.price : getEffectivePrice(b.bundleProduct), b.flashSale)
+      const discountedPrice = flashPrice * (1 - b.discountPercent / 100)
       addToGuestCart({
         productId: b.bundleProduct.id,
         vendorId: b.bundleProduct.vendorId,

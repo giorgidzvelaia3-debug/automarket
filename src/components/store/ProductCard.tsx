@@ -300,6 +300,7 @@ export default function ProductCard({
           vendorId={vendorId ?? ""}
           vendorName={vendorName ?? ""}
           vendorSlug={vendorSlug ?? ""}
+          flashSale={flashSale}
           onClose={() => setShowVariantModal(false)}
           onSuccess={handleVariantSuccess}
         />
