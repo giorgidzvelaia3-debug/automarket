@@ -51,14 +51,6 @@ export async function createOrder(formData: FormData) {
 
   if (cartItems.length === 0) redirect("/cart")
 
-  // Validate stock
-  for (const item of cartItems) {
-    const stock = item.variant ? item.variant.stock : item.product.stock
-    if (item.product.status !== "ACTIVE" || stock < item.quantity) {
-      redirect("/cart?error=Some+items+are+out+of+stock.+Please+review+your+cart.")
-    }
-  }
-
   const address = [
     formData.get("fullName") as string,
     formData.get("address") as string,
@@ -112,6 +104,27 @@ export async function createOrder(formData: FormData) {
   // Create order, order items, decrement stock, clear cart — all in one transaction
   try {
   await prisma.$transaction(async (tx) => {
+    // Validate stock INSIDE transaction to prevent race conditions
+    for (const item of itemsWithCommission) {
+      if (item.variantId) {
+        const variant = await tx.productVariant.findUnique({
+          where: { id: item.variantId },
+          select: { stock: true },
+        })
+        if (!variant || variant.stock < item.quantity) {
+          throw new Error("Some items are out of stock. Please review your cart.")
+        }
+      } else {
+        const product = await tx.product.findUnique({
+          where: { id: item.product.id },
+          select: { stock: true, status: true },
+        })
+        if (!product || product.status !== "ACTIVE" || product.stock < item.quantity) {
+          throw new Error("Some items are out of stock. Please review your cart.")
+        }
+      }
+    }
+
     const order = await tx.order.create({
       data: {
         buyerId: userId,
@@ -283,6 +296,17 @@ export async function createGuestOrder(
   )
 
   await prisma.$transaction(async (tx) => {
+    // Validate stock INSIDE transaction to prevent race conditions
+    for (const entry of cartEntries) {
+      const product = await tx.product.findUnique({
+        where: { id: entry.productId },
+        select: { stock: true, status: true },
+      })
+      if (!product || product.status !== "ACTIVE" || product.stock < entry.quantity) {
+        throw new Error("Some items are out of stock. Please review your cart.")
+      }
+    }
+
     const order = await tx.order.create({
       data: {
         buyerId: null,
@@ -298,6 +322,8 @@ export async function createGuestOrder(
           create: entriesWithCommission.map(({ entry, product, rate, adminCommission, vendorEarning }) => ({
             productId: entry.productId,
             vendorId: product.vendorId,
+            variantId: entry.variantId ?? null,
+            variantName: entry.variantName ?? null,
             quantity: entry.quantity,
             price: entry.price,
             commissionRate: rate,

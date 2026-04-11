@@ -87,7 +87,7 @@ export default function GuestCartPage() {
               </div>
               <div className="divide-y divide-gray-100">
                 {vendorItems.map((item) => (
-                  <GuestCartItemRow key={item.productId} item={item} onUpdate={refresh} />
+                  <GuestCartItemRow key={`${item.productId}::${item.variantId ?? ""}`} item={item} onUpdate={refresh} />
                 ))}
               </div>
             </div>
@@ -121,12 +121,12 @@ function GuestCartItemRow({
   const maxQty = Math.min(item.stock, 10)
 
   function changeQty(newQty: number) {
-    updateGuestCartQuantity(item.productId, newQty)
+    updateGuestCartQuantity(item.productId, newQty, item.variantId)
     onUpdate()
   }
 
   function remove() {
-    removeFromGuestCart(item.productId)
+    removeFromGuestCart(item.productId, item.variantId)
     onUpdate()
   }
 

@@ -10,6 +10,8 @@ import ProductGrid from "@/components/store/ProductGrid"
 import ShopFilters from "./ShopFilters"
 import ShopTopBar from "./ShopTopBar"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
+import { getWishlistIds } from "@/lib/actions/wishlist"
+import { toProductCardProps } from "@/lib/productCard"
 
 const ALLOWED_PER_PAGE = [12, 24, 48, 96]
 const DEFAULT_PER_PAGE = 12
@@ -178,10 +180,14 @@ export default async function ShopPage(props: {
     products = products.slice((page - 1) * perPage, page * perPage)
   }
 
-  const adjustedTotal = minRating ? totalCount : totalCount // approximation
+  const adjustedTotal = minRating ? products.length : totalCount
   const totalPages = Math.ceil(adjustedTotal / perPage)
 
-  const locale = await getLocale()
+  const [locale, flashSaleMap, wishlistIds] = await Promise.all([
+    getLocale(),
+    getFlashSalesForProducts(products.map((p) => p.id)),
+    getWishlistIds(),
+  ])
 
   // Build name maps for pills
   const categoryNames: Record<string, string> = {}
@@ -189,27 +195,15 @@ export default async function ShopPage(props: {
   const vendorNames: Record<string, string> = {}
   for (const v of allVendors) vendorNames[v.slug] = v.name
 
-  const flashSaleMap = await getFlashSalesForProducts(products.map((p) => p.id))
-
-  // Map to ProductCardProps
-  const cardProducts = products.map((p) => ({
-    productId: p.id,
-    slug: p.slug,
-    name: p.name,
-    nameEn: p.nameEn,
-    price: Number(p.price),
-    stock: p.stock,
-    imageUrl: p.images[0]?.url,
-    categoryName: localized(locale, p.category.name, p.category.nameEn),
-    vendorName: p.vendor.name,
-    vendorSlug: p.vendor.slug,
-    vendorId: p.vendorId,
-    avgRating: p.reviewCount > 0 ? p.avgRating : undefined,
-    reviewCount: p.reviewCount > 0 ? p.reviewCount : undefined,
-    createdAt: p.createdAt.toISOString(),
-    variants: p.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })),
-    flashSale: flashSaleMap.get(p.id) ?? null,
-  }))
+  const cardProducts = products.map((product) =>
+    toProductCardProps(product, {
+      locale,
+      flashSale: flashSaleMap.get(product.id) ?? null,
+      isWishlisted: wishlistIds.has(product.id),
+      avgRating: product.avgRating,
+      reviewCount: product.reviewCount,
+    })
+  )
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

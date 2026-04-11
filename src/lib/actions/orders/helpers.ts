@@ -11,6 +11,8 @@ export type GuestCartEntry = {
   vendorId: string
   quantity: number
   price: number
+  variantId?: string | null
+  variantName?: string | null
 }
 
 /**

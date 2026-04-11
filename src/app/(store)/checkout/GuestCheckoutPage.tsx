@@ -60,6 +60,8 @@ export default function GuestCheckoutPage() {
         vendorId: i.vendorId,
         quantity: i.quantity,
         price: i.price,
+        variantId: i.variantId ?? null,
+        variantName: i.variantName ?? null,
       }))
     ))
 

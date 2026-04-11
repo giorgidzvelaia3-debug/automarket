@@ -8,6 +8,7 @@ type GuestItem = {
   productId: string
   vendorId: string
   quantity: number
+  variantId?: string | null
 }
 
 export async function mergeGuestCart(guestItems: GuestItem[]) {
@@ -23,13 +24,26 @@ export async function mergeGuestCart(guestItems: GuestItem[]) {
     })
     if (!product) continue
 
+    const variantId = item.variantId ?? null
+
+    // If variant, check variant stock instead
+    let effectiveStock = product.stock
+    if (variantId) {
+      const variant = await prisma.productVariant.findUnique({
+        where: { id: variantId },
+        select: { stock: true },
+      })
+      if (!variant) continue
+      effectiveStock = variant.stock
+    }
+
     const existing = await prisma.cartItem.findFirst({
-      where: { userId, productId: item.productId, variantId: null },
+      where: { userId, productId: item.productId, variantId },
       select: { id: true, quantity: true },
     })
 
     if (existing) {
-      const newQty = Math.min(existing.quantity + item.quantity, product.stock)
+      const newQty = Math.min(existing.quantity + item.quantity, effectiveStock)
       await prisma.cartItem.update({
         where: { id: existing.id },
         data: { quantity: newQty },
@@ -40,7 +54,8 @@ export async function mergeGuestCart(guestItems: GuestItem[]) {
           userId,
           productId: item.productId,
           vendorId: product.vendorId,
-          quantity: Math.min(item.quantity, product.stock),
+          variantId,
+          quantity: Math.min(item.quantity, effectiveStock),
         },
       })
     }

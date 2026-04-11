@@ -80,7 +80,15 @@ export async function validateCoupon(
   }
   discount = Math.round(discount * 100) / 100
 
-  void userId // reserved for per-user limits in future
+  // Per-user limit: each user can use a coupon only once
+  if (userId) {
+    const priorUses = await prisma.couponUse.count({
+      where: { couponId: coupon.id, userId },
+    })
+    if (priorUses > 0) {
+      return { valid: false, error: "You have already used this coupon" }
+    }
+  }
 
   return { valid: true, discount, couponId: coupon.id, couponCode: coupon.code }
 }

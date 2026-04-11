@@ -18,6 +18,7 @@ export default function CartMerge() {
       productId: i.productId,
       vendorId: i.vendorId,
       quantity: i.quantity,
+      variantId: i.variantId ?? null,
     }))
 
     mergeGuestCart(items).then(() => {

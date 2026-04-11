@@ -7,6 +7,22 @@ import { requireAdmin, requireApprovedVendor } from "@/lib/authHelpers"
 const MIN_WITHDRAWAL = 50
 
 export async function getVendorBalance(vendorId: string) {
+  // Authorization: only the vendor themselves or an admin may view balance
+  const session = await (await import("@/lib/auth")).auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
+
+  if (session.user.role === "ADMIN") {
+    // Admin can view any vendor balance
+  } else if (session.user.role === "VENDOR") {
+    const vendor = await prisma.vendor.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    })
+    if (!vendor || vendor.id !== vendorId) throw new Error("Unauthorized")
+  } else {
+    throw new Error("Unauthorized")
+  }
+
   const [deliveredItems, pendingItems, withdrawals] = await Promise.all([
     prisma.orderItem.findMany({
       where: { vendorId, order: { status: "DELIVERED" } },
