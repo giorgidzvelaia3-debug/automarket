@@ -8,7 +8,7 @@ export async function proxy(request: NextRequest) {
   // ── Auth-protected routes ──
   if (
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/vendor") ||
+    (pathname.startsWith("/vendor") && !pathname.startsWith("/vendors")) ||
     pathname.startsWith("/account")
   ) {
     const session = await auth()
@@ -17,7 +17,7 @@ export async function proxy(request: NextRequest) {
     if (pathname.startsWith("/admin") && role !== "ADMIN") {
       return NextResponse.redirect(new URL("/login", request.url))
     }
-    if (pathname.startsWith("/vendor") && role !== "VENDOR" && role !== "ADMIN") {
+    if (pathname.startsWith("/vendor") && !pathname.startsWith("/vendors") && role !== "VENDOR" && role !== "ADMIN") {
       return NextResponse.redirect(new URL("/login", request.url))
     }
     if (pathname.startsWith("/account") && !session?.user) {
