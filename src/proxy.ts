@@ -3,38 +3,54 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export async function proxy(request: NextRequest) {
-  const session = await auth()
   const { pathname } = request.nextUrl
-  const role = (session?.user as { role?: string } | undefined)?.role
 
-  // Protect admin routes
-  if (pathname.startsWith("/admin") && role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/login", request.url))
-  }
-
-  // Protect vendor routes — allow both VENDOR and ADMIN
+  // ── Auth-protected routes ──
   if (
-    pathname.startsWith("/vendor") &&
-    role !== "VENDOR" &&
-    role !== "ADMIN"
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/vendor") ||
+    pathname.startsWith("/account")
   ) {
-    return NextResponse.redirect(new URL("/login", request.url))
+    const session = await auth()
+    const role = (session?.user as { role?: string } | undefined)?.role
+
+    if (pathname.startsWith("/admin") && role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/login", request.url))
+    }
+    if (pathname.startsWith("/vendor") && role !== "VENDOR" && role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/login", request.url))
+    }
+    if (pathname.startsWith("/account") && !session?.user) {
+      return NextResponse.redirect(new URL("/login", request.url))
+    }
+
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set("x-pathname", pathname)
+    const response = NextResponse.next({ request: { headers: requestHeaders } })
+    response.headers.set("Cache-Control", "no-store, must-revalidate")
+    return response
   }
 
-  // Protect account routes — require any authenticated user
-  if (pathname.startsWith("/account") && !session?.user) {
-    return NextResponse.redirect(new URL("/login", request.url))
+  // ── Public routes — set cache headers ──
+  const response = NextResponse.next()
+
+  if (pathname.startsWith("/products/")) {
+    response.headers.set("Cache-Control", "public, max-age=120, stale-while-revalidate=600")
+  } else if (
+    pathname === "/" ||
+    pathname.startsWith("/shop") ||
+    pathname.startsWith("/categories") ||
+    pathname.startsWith("/vendors") ||
+    pathname.startsWith("/search")
+  ) {
+    response.headers.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
   }
 
-  // Forward pathname as a header so Server Component layouts can read it
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set("x-pathname", pathname)
-
-  return NextResponse.next({
-    request: { headers: requestHeaders },
-  })
+  return response
 }
 
 export const config = {
-  matcher: ["/vendor/:path*", "/admin/:path*", "/account/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|api/).*)",
+  ],
 }

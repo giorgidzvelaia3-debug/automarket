@@ -39,19 +39,22 @@ export async function GET(request: NextRequest) {
     }),
   ])
 
-  return NextResponse.json({
-    products: products.map((p) => ({
-      slug: p.slug,
-      name: p.name,
-      nameEn: p.nameEn,
-      price: Number(p.price),
-      image: p.images[0]?.url ?? null,
-      vendorName: p.vendor.name,
-    })),
-    categories: categories.map((c) => ({
-      slug: c.slug,
-      name: c.name,
-      nameEn: c.nameEn,
-    })),
-  })
+  return NextResponse.json(
+    {
+      products: products.map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        nameEn: p.nameEn,
+        price: Number(p.price),
+        image: p.images[0]?.url ?? null,
+        vendorName: p.vendor.name,
+      })),
+      categories: categories.map((c) => ({
+        slug: c.slug,
+        name: c.name,
+        nameEn: c.nameEn,
+      })),
+    },
+    { headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" } }
+  )
 }

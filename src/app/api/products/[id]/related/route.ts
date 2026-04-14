@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
+import { getFlashSalesForProductsCached } from "@/lib/cache/flashSales"
 import { toProductCardProps } from "@/lib/productCard"
 
 export async function GET(
@@ -37,13 +37,13 @@ export async function GET(
   ])
 
   const allIds = [...similarProducts.map((p) => p.id), ...vendorProducts.map((p) => p.id)]
-  const flashSaleMap = allIds.length > 0 ? await getFlashSalesForProducts(allIds) : new Map()
+  const flashSaleMap = allIds.length > 0 ? await getFlashSalesForProductsCached(allIds) : new Map()
 
   const toProps = (p: (typeof similarProducts)[number]) =>
     toProductCardProps(p, { flashSale: flashSaleMap.get(p.id) ?? null })
 
-  return NextResponse.json({
-    similar: similarProducts.map(toProps),
-    vendor: vendorProducts.map(toProps),
-  })
+  return NextResponse.json(
+    { similar: similarProducts.map(toProps), vendor: vendorProducts.map(toProps) },
+    { headers: { "Cache-Control": "public, max-age=300, stale-while-revalidate=3600" } }
+  )
 }
