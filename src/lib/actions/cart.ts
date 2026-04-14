@@ -15,6 +15,7 @@ export async function addToCart(productId: string, quantity: number = 1, variant
     select: {
       id: true,
       vendorId: true,
+      categoryId: true,
       price: true,
       stock: true,
       _count: { select: { variants: true } },
@@ -41,7 +42,7 @@ export async function addToCart(productId: string, quantity: number = 1, variant
   }
 
   // Compute effective price (with flash sale)
-  const flashSale = await getFlashSaleByProduct(productId)
+  const flashSale = await getFlashSaleByProduct(productId, { categoryId: product.categoryId, price: Number(product.price) })
   const finalPrice = getEffectivePrice(Number(product.price), variantPrice, flashSale)
 
   const existing = await prisma.cartItem.findFirst({

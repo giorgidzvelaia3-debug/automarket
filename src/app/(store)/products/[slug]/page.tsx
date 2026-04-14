@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { cache } from "react"
 import { getLocale, getTranslations } from "next-intl/server"
 import { localized } from "@/lib/localeName"
 import { auth } from "@/lib/auth"
@@ -15,8 +16,24 @@ import MessageVendorButton from "./MessageVendorButton"
 import BundleSection from "./BundleSection"
 import TrackRecentlyViewed from "@/components/store/TrackRecentlyViewed"
 import { getFlashSaleByProduct, getFlashSalesForProducts } from "@/lib/actions/flashSales"
-import { isWishlisted } from "@/lib/actions/wishlist"
+import { isWishlisted, getWishlistIds } from "@/lib/actions/wishlist"
 import { getBundleItems } from "@/lib/actions/bundles"
+
+/* ─── Cached product fetch (shared by metadata + page) ─── */
+
+const getProduct = cache((slug: string) =>
+  prisma.product.findUnique({
+    where: { slug },
+    select: {
+      id: true, name: true, nameEn: true, description: true, descriptionEn: true,
+      price: true, stock: true, status: true, categoryId: true, vendorId: true,
+      images: { orderBy: { order: "asc" }, select: { id: true, url: true, variantId: true } },
+      category: { select: { nameEn: true, name: true, slug: true } },
+      vendor: { select: { name: true, slug: true, description: true } },
+      variants: { orderBy: { order: "asc" }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
+    },
+  })
+)
 
 /* ─── Metadata ──────────────────────────────────────────── */
 
@@ -24,23 +41,17 @@ export async function generateMetadata(props: {
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await props.params
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    select: {
-      name: true, nameEn: true, descriptionEn: true,
-      vendor: { select: { name: true } },
-      images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
-    },
-  })
+  const product = await getProduct(slug)
   if (!product) return { title: "Product Not Found" }
 
   const title = `${product.nameEn} — ${product.vendor.name} | AutoMarket`
   const description = product.descriptionEn?.slice(0, 160) ??
     `Buy ${product.nameEn} from ${product.vendor.name} on AutoMarket`
+  const image = product.images.find((i) => !i.variantId)?.url
 
   return {
     title, description,
-    openGraph: { title, description, ...(product.images[0]?.url && { images: [{ url: product.images[0].url }] }) },
+    openGraph: { title, description, ...(image && { images: [{ url: image }] }) },
   }
 }
 
@@ -53,18 +64,8 @@ export default async function ProductPage(props: {
     props.params, getTranslations("Product"), auth(), getLocale(),
   ])
 
-  // ── Product query ──
-  const rawProduct = await prisma.product.findUnique({
-    where: { slug },
-    select: {
-      id: true, name: true, nameEn: true, description: true, descriptionEn: true,
-      price: true, stock: true, status: true, categoryId: true, vendorId: true,
-      images: { orderBy: { order: "asc" }, select: { id: true, url: true, variantId: true } },
-      category: { select: { nameEn: true, name: true, slug: true } },
-      vendor: { select: { name: true, slug: true, description: true } },
-      variants: { orderBy: { order: "asc" }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
-    },
-  })
+  // ── Product query (cached — shared with generateMetadata) ──
+  const rawProduct = await getProduct(slug)
   const product = rawProduct
     ? { ...rawProduct, price: Number(rawProduct.price), variants: rawProduct.variants.map((v) => ({ ...v, price: Number(v.price) })) }
     : null
@@ -83,16 +84,17 @@ export default async function ProductPage(props: {
     variants: { orderBy: { order: "asc" as const }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
   }
 
-  const [similarProducts, vendorProducts, reviews, ratingAgg, totalReviewCount, wishlisted, activeSale, bundleItems] = await Promise.all([
+  const [similarProducts, vendorProducts, reviews, ratingAgg, wishlisted, activeSale, bundleItems, wishlistIds] = await Promise.all([
     prisma.product.findMany({ where: { categoryId: product.categoryId, status: "ACTIVE", id: { not: product.id } }, take: 8, orderBy: { createdAt: "desc" }, select: carouselSelect }),
     prisma.product.findMany({ where: { vendorId: product.vendorId, status: "ACTIVE", id: { not: product.id } }, take: 8, orderBy: { createdAt: "desc" }, select: carouselSelect }),
     prisma.review.findMany({ where: { productId: product.id }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, rating: true, comment: true, createdAt: true, userId: true, user: { select: { name: true, email: true } } } }),
-    prisma.review.aggregate({ where: { productId: product.id }, _avg: { rating: true }, _count: { rating: true } }),
-    prisma.review.count({ where: { productId: product.id } }),
+    prisma.review.aggregate({ where: { productId: product.id }, _avg: { rating: true }, _count: true }),
     userId ? isWishlisted(product.id) : Promise.resolve(false),
-    getFlashSaleByProduct(product.id),
+    getFlashSaleByProduct(product.id, { categoryId: product.categoryId, price: product.price }),
     getBundleItems(product.id),
+    getWishlistIds(),
   ])
+  const totalReviewCount = ratingAgg._count
 
   const bundleProductIds = bundleItems.map((b) => b.bundleProduct.id)
   const [carouselFlashSaleMap, bundleFlashSaleMap] = await Promise.all([
@@ -239,6 +241,7 @@ export default async function ProductPage(props: {
         locale={locale}
         localized={localized}
         flashSaleMap={carouselFlashSaleMap}
+        wishlistIds={wishlistIds}
       />
 
       {/* ─── Mobile sticky bar ─── */}

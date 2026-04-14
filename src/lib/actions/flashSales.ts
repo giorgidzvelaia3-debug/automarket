@@ -268,75 +268,78 @@ export type FlashSaleData = {
   title: string
 }
 
-export async function getFlashSaleByProduct(productId: string): Promise<FlashSaleData | null> {
+export async function getFlashSaleByProduct(
+  productId: string,
+  opts?: { categoryId?: string; price?: number }
+): Promise<FlashSaleData | null> {
   const now = new Date()
 
-  // Check specific product-level flash sale item
-  const productItem = await prisma.flashSaleItem.findFirst({
-    where: {
-      productId,
-      flashSale: {
-        status: "ACTIVE",
-        startTime: { lte: now },
-        endTime: { gte: now },
-      },
-    },
-    select: {
-      id: true,
-      salePrice: true,
-      originalPrice: true,
-      discountType: true,
-      discountValue: true,
-      maxQuantity: true,
-      soldCount: true,
-      flashSale: { select: { endTime: true, title: true, titleEn: true, saleMode: true } },
-    },
-  })
+  const itemSelect = {
+    id: true,
+    salePrice: true,
+    originalPrice: true,
+    discountType: true,
+    discountValue: true,
+    maxQuantity: true,
+    soldCount: true,
+  } as const
 
-  // Also check category-level sales (where saleMode=CATEGORY and product's category matches)
-  const product = await prisma.product.findUnique({
-    where: { id: productId },
-    select: { categoryId: true, price: true },
-  })
+  // Resolve categoryId: use provided or fallback to DB lookup
+  let categoryId = opts?.categoryId
+  if (!categoryId) {
+    const p = await prisma.product.findUnique({ where: { id: productId }, select: { categoryId: true } })
+    categoryId = p?.categoryId ?? undefined
+  }
 
-  let categoryItem: typeof productItem = null
-  if (product) {
-    const catSale = await prisma.flashSale.findFirst({
+  // Run product-level and category-level queries in parallel
+  const [productItem, catSale] = await Promise.all([
+    // Product-level flash sale
+    prisma.flashSaleItem.findFirst({
       where: {
-        status: "ACTIVE",
-        saleMode: "CATEGORY",
-        categoryId: product.categoryId,
-        startTime: { lte: now },
-        endTime: { gte: now },
-      },
-      select: {
-        endTime: true,
-        title: true,
-        titleEn: true,
-        saleMode: true,
-        categoryDiscount: true,
-        categoryDiscountType: true,
-        items: {
-          where: { productId },
-          take: 1,
-          select: {
-            id: true,
-            salePrice: true,
-            originalPrice: true,
-            discountType: true,
-            discountValue: true,
-            maxQuantity: true,
-            soldCount: true,
-          },
+        productId,
+        flashSale: {
+          status: "ACTIVE",
+          startTime: { lte: now },
+          endTime: { gte: now },
         },
       },
-    })
+      select: {
+        ...itemSelect,
+        flashSale: { select: { endTime: true, title: true, titleEn: true, saleMode: true } },
+      },
+    }),
+    // Category-level flash sale (skip if no categoryId)
+    categoryId
+      ? prisma.flashSale.findFirst({
+          where: {
+            status: "ACTIVE",
+            saleMode: "CATEGORY",
+            categoryId,
+            startTime: { lte: now },
+            endTime: { gte: now },
+          },
+          select: {
+            endTime: true,
+            title: true,
+            titleEn: true,
+            saleMode: true,
+            categoryDiscount: true,
+            categoryDiscountType: true,
+            items: {
+              where: { productId },
+              take: 1,
+              select: itemSelect,
+            },
+          },
+        })
+      : null,
+  ])
 
-    if (catSale?.items[0]) {
-      categoryItem = {
-        ...catSale.items[0],
-        flashSale: { endTime: catSale.endTime, title: catSale.title, titleEn: catSale.titleEn, saleMode: catSale.saleMode },
-      }
+  let categoryItem: typeof productItem = null
+  if (catSale?.items[0]) {
+    categoryItem = {
+      ...catSale.items[0],
+      flashSale: { endTime: catSale.endTime, title: catSale.title, titleEn: catSale.titleEn, saleMode: catSale.saleMode },
     }
   }
 

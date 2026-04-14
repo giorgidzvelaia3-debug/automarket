@@ -1,7 +1,6 @@
 import Link from "next/link"
 import LazyProductCarousel from "@/components/store/LazyProductCarousel"
 import type { FlashSaleInfo } from "@/lib/flashSalePrice"
-import { getWishlistIds } from "@/lib/actions/wishlist"
 import { toProductCardProps } from "@/lib/productCard"
 
 type CarouselProduct = {
@@ -29,6 +28,7 @@ export default async function ProductCarousels({
   locale,
   localized,
   flashSaleMap,
+  wishlistIds,
 }: {
   similarProducts: CarouselProduct[]
   vendorProducts: CarouselProduct[]
@@ -38,8 +38,8 @@ export default async function ProductCarousels({
   locale: string
   localized: (locale: string, ka: string | null | undefined, en: string | null | undefined) => string
   flashSaleMap: Map<string, FlashSaleInfo>
+  wishlistIds: Set<string>
 }) {
-  const wishlistIds = await getWishlistIds()
   void localized
 
   return (
