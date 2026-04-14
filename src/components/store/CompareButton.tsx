@@ -29,10 +29,10 @@ export default function CompareButton({
         type="button"
         onClick={handleClick}
         disabled={!inCompare && isFull}
-        className={`w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm border border-gray-200/60 shadow-sm transition-all disabled:opacity-40 ${
+        className={`w-8 h-8 flex items-center justify-center rounded-lg backdrop-blur-sm border shadow-sm transition-all disabled:opacity-40 ${
           inCompare
-            ? "bg-blue-600 text-white border-blue-600"
-            : "bg-white/90 text-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600"
+            ? "bg-blue-50 text-blue-600 border-blue-200"
+            : "bg-white/90 text-gray-400 border-gray-200/60 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200"
         }`}
         title={isFull && !inCompare ? "Max 3 products" : inCompare ? "Remove from compare" : "Compare"}
         aria-label="Compare"

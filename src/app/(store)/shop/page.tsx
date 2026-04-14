@@ -90,15 +90,24 @@ export default async function ShopPage(props: {
     }),
   ])
 
-  // Resolve category/vendor IDs from slugs — in parallel
-  const [categoryIds, vendorIds] = await Promise.all([
+  // Resolve category/vendor IDs from slugs + price range — in parallel
+  const [categoryIds, vendorIds, priceAgg] = await Promise.all([
     catSlugs.length > 0
       ? prisma.category.findMany({ where: { slug: { in: catSlugs } }, select: { id: true } }).then((cs) => cs.map((c) => c.id))
       : undefined,
     vendorSlugs.length > 0
       ? prisma.vendor.findMany({ where: { slug: { in: vendorSlugs } }, select: { id: true } }).then((vs) => vs.map((v) => v.id))
       : undefined,
+    prisma.product.aggregate({
+      where: { status: "ACTIVE" },
+      _min: { price: true },
+      _max: { price: true },
+    }),
   ])
+  const priceRange = {
+    min: Math.floor(Number(priceAgg._min.price ?? 0)),
+    max: Math.ceil(Number(priceAgg._max.price ?? 1000)),
+  }
 
   // Build where clause — all server-side
   const where: Record<string, unknown> = { status: "ACTIVE" as const }
@@ -218,6 +227,7 @@ export default async function ShopPage(props: {
         categories={allCategories.map((c) => ({ slug: c.slug, nameEn: c.nameEn, name: c.name, count: c._count.products }))}
         vendors={allVendors.map((v) => ({ slug: v.slug, name: v.name, count: v._count.products }))}
         currentParams={params}
+        priceRange={priceRange}
         mobile
       />
 
@@ -227,6 +237,7 @@ export default async function ShopPage(props: {
           categories={allCategories.map((c) => ({ slug: c.slug, nameEn: c.nameEn, name: c.name, count: c._count.products }))}
           vendors={allVendors.map((v) => ({ slug: v.slug, name: v.name, count: v._count.products }))}
           currentParams={params}
+          priceRange={priceRange}
         />
 
         {/* Main content */}

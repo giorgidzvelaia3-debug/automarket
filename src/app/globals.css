@@ -11,12 +11,7 @@
   --font-sans: var(--font-inter), var(--font-georgian), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Dark mode disabled — light-only design */
 
 body {
   overflow-x: clip;
@@ -35,6 +30,15 @@ body {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* Mobile drawer animation */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s ease-out;
 }
 
 /* Hide scrollbar but keep scrolling */

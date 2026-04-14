@@ -57,18 +57,18 @@ export default function WishlistButton({
   }
 
   const iconSize = size === "sm" ? "w-4 h-4" : "w-5 h-5"
-  const btnSize = size === "sm" ? "w-7 h-7" : "w-9 h-9"
+  const btnSize = size === "sm" ? "w-8 h-8" : "w-9 h-9"
 
   return (
     <button
       type="button"
       onClick={handleClick}
       disabled={isPending || (!isLoggedIn && !guestWishlist.mounted)}
-      className={`${btnSize} flex items-center justify-center rounded-full transition-all ${
+      className={`${btnSize} flex items-center justify-center rounded-lg backdrop-blur-sm border shadow-sm transition-all disabled:opacity-60 ${
         wishlisted
-          ? "bg-red-50 text-red-500 hover:bg-red-100"
-          : "bg-white/80 text-gray-400 hover:text-red-500 hover:bg-red-50"
-      } backdrop-blur-sm border border-gray-200/60 shadow-sm disabled:opacity-60`}
+          ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
+          : "bg-white/90 text-gray-400 border-gray-200/60 hover:text-red-500 hover:bg-red-50 hover:border-red-200"
+      }`}
       aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
       aria-pressed={wishlisted}
     >
