@@ -178,7 +178,7 @@ export default async function ProductPage(props: {
 
       {/* ─── Vendor card (mobile only) ─── */}
       <div className="lg:hidden mt-6">
-        <div className="bg-white/80 backdrop-blur-xl border border-gray-200/60 shadow-lg rounded-2xl overflow-hidden px-5 py-4">
+        <div className="bg-white border border-gray-200 shadow-lg rounded-2xl overflow-hidden px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
               <span className="text-blue-500 text-base font-bold">

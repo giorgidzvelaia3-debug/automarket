@@ -29,10 +29,10 @@ export default function CompareButton({
         type="button"
         onClick={handleClick}
         disabled={!inCompare && isFull}
-        className={`w-8 h-8 flex items-center justify-center rounded-lg backdrop-blur-sm border shadow-sm transition-all disabled:opacity-40 ${
+        className={`w-8 h-8 flex items-center justify-center rounded-lg border shadow-sm transition-colors disabled:opacity-40 ${
           inCompare
             ? "bg-blue-50 text-blue-600 border-blue-200"
-            : "bg-white/90 text-gray-400 border-gray-200/60 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200"
+            : "bg-white text-gray-400 border-gray-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200"
         }`}
         title={isFull && !inCompare ? "Max 3 products" : inCompare ? "Remove from compare" : "Compare"}
         aria-label="Compare"
@@ -55,7 +55,7 @@ export default function CompareButton({
           : isFull
             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
             : "bg-white/90 text-gray-600 border border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-      } backdrop-blur-sm shadow-sm`}
+      } shadow-sm`}
       title={isFull && !inCompare ? "Max 3 products to compare" : undefined}
     >
       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

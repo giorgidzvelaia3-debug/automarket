@@ -133,7 +133,7 @@ export default async function VendorStorePage(props: {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
           <div className="flex items-start gap-4 sm:gap-5">
-            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shrink-0">
+            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
               <span className="text-white text-2xl sm:text-4xl font-bold">
                 {vendor.name.charAt(0).toUpperCase()}
               </span>
@@ -160,22 +160,22 @@ export default async function VendorStorePage(props: {
               {(vendor.minOrderAmount || vendor.maxOrderAmount || vendor.minOrderQty || vendor.maxOrderQty) && (
                 <div className="mt-3 flex items-center gap-1.5 flex-wrap">
                   {vendor.minOrderAmount && (
-                    <span className="inline-flex items-center rounded-full bg-white/15 backdrop-blur-sm border border-white/30 px-2.5 py-1 text-[11px] font-semibold text-white">
+                    <span className="inline-flex items-center rounded-full bg-white/20 border border-white/30 px-2.5 py-1 text-[11px] font-semibold text-white">
                       მინ. შეკვეთა: ₾{Number(vendor.minOrderAmount).toFixed(2)}
                     </span>
                   )}
                   {vendor.maxOrderAmount && (
-                    <span className="inline-flex items-center rounded-full bg-white/15 backdrop-blur-sm border border-white/30 px-2.5 py-1 text-[11px] font-semibold text-white">
+                    <span className="inline-flex items-center rounded-full bg-white/20 border border-white/30 px-2.5 py-1 text-[11px] font-semibold text-white">
                       მაქს. შეკვეთა: ₾{Number(vendor.maxOrderAmount).toFixed(2)}
                     </span>
                   )}
                   {vendor.minOrderQty && (
-                    <span className="inline-flex items-center rounded-full bg-white/15 backdrop-blur-sm border border-white/30 px-2.5 py-1 text-[11px] font-semibold text-white">
+                    <span className="inline-flex items-center rounded-full bg-white/20 border border-white/30 px-2.5 py-1 text-[11px] font-semibold text-white">
                       მინ. რაოდ: {vendor.minOrderQty}
                     </span>
                   )}
                   {vendor.maxOrderQty && (
-                    <span className="inline-flex items-center rounded-full bg-white/15 backdrop-blur-sm border border-white/30 px-2.5 py-1 text-[11px] font-semibold text-white">
+                    <span className="inline-flex items-center rounded-full bg-white/20 border border-white/30 px-2.5 py-1 text-[11px] font-semibold text-white">
                       მაქს. რაოდ: {vendor.maxOrderQty}
                     </span>
                   )}

@@ -152,7 +152,7 @@ export default function StickyMobileBar({
 
   return (
     <>
-    <div className={`fixed bottom-0 inset-x-0 z-40 lg:hidden bg-white/95 backdrop-blur-md border-t border-gray-200/80 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-transform duration-300 ${visible ? "translate-y-0" : "translate-y-full"}`}>
+    <div className={`fixed bottom-0 inset-x-0 z-40 lg:hidden bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-transform duration-300 ${visible ? "translate-y-0" : "translate-y-full"}`}>
       <div className="flex items-center gap-2 max-w-lg mx-auto">
         {/* Price */}
         <div className="shrink-0">

@@ -89,7 +89,7 @@ export default function VariantPickerModal({
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/50" />
 
       {/* Modal */}
       <div

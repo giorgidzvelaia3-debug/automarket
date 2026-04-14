@@ -64,7 +64,7 @@ export default function BundleVariantPicker({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
+      <div className="fixed inset-0 bg-black/50" onClick={onCancel} />
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden z-10">
         {/* Header */}
         <div className="px-5 pt-5 pb-3">

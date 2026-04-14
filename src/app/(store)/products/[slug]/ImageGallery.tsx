@@ -119,7 +119,7 @@ export default function ImageGallery({
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); goTo(-1) }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-white/40 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
                 aria-label="Previous image"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -129,20 +129,20 @@ export default function ImageGallery({
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); goTo(1) }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-white/40 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
                 aria-label="Next image"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
-              <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm text-white text-[11px] font-medium rounded-full px-3 py-1">
+              <div className="absolute bottom-3 right-3 bg-black/60 text-white text-[11px] font-medium rounded-full px-3 py-1">
                 {safeActive + 1} / {displayImages.length}
               </div>
             </>
           )}
 
-          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm text-white text-[10px] font-medium rounded-full px-2.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+          <div className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-medium rounded-full px-2.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
             </svg>
@@ -229,7 +229,7 @@ export default function ImageGallery({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-sm text-white text-sm font-medium rounded-full px-4 py-1.5">
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/50 text-white text-sm font-medium rounded-full px-4 py-1.5">
                 {safeActive + 1} / {displayImages.length}
               </div>
             </>

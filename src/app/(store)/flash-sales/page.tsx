@@ -71,7 +71,7 @@ export default async function FlashSalesPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-white/60 text-xs mb-1">Ends in</p>
-                  <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                  <div className="bg-white/20 rounded-lg px-3 py-1.5">
                     <CountdownTimer endTime={sale.endTime.toISOString()} />
                   </div>
                 </div>

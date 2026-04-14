@@ -43,7 +43,7 @@ export default function WithdrawalForm({ availableBalance }: { availableBalance:
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setOpen(false)}>
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/50" />
           <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
             <div>
               <h2 className="text-lg font-bold text-gray-900">Request Withdrawal</h2>

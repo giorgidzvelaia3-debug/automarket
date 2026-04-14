@@ -43,7 +43,7 @@ export default function ProductInfoPanel({
 }: Props) {
   return (
     <div>
-      <div className="bg-white/80 backdrop-blur-xl border border-gray-200/60 shadow-lg rounded-2xl overflow-hidden">
+      <div className="bg-white border border-gray-200 shadow-lg rounded-2xl overflow-hidden">
         {/* Header — category + name + rating */}
         <div className="px-5 pt-5 pb-4">
           <Link

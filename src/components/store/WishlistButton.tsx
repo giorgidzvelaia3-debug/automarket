@@ -64,10 +64,10 @@ export default function WishlistButton({
       type="button"
       onClick={handleClick}
       disabled={isPending || (!isLoggedIn && !guestWishlist.mounted)}
-      className={`${btnSize} flex items-center justify-center rounded-lg backdrop-blur-sm border shadow-sm transition-all disabled:opacity-60 ${
+      className={`${btnSize} flex items-center justify-center rounded-lg border shadow-sm transition-colors disabled:opacity-60 ${
         wishlisted
           ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
-          : "bg-white/90 text-gray-400 border-gray-200/60 hover:text-red-500 hover:bg-red-50 hover:border-red-200"
+          : "bg-white text-gray-400 border-gray-200 hover:text-red-500 hover:bg-red-50 hover:border-red-200"
       }`}
       aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
       aria-pressed={wishlisted}

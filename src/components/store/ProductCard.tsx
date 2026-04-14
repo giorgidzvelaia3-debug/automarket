@@ -7,7 +7,7 @@ import WishlistButton from "./WishlistButton"
 import CompareButton from "./CompareButton"
 import VariantPickerModal from "./VariantPickerModal"
 import { useAddToCart } from "@/lib/useAddToCart"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo, useRef, memo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/authContext"
 import { useLocale, useTranslations } from "next-intl"
@@ -20,7 +20,7 @@ import {
 
 export type { ProductCardProps } from "@/lib/productCard"
 
-export default function ProductCard({
+export default memo(function ProductCard({
   productId,
   slug,
   name,
@@ -51,22 +51,33 @@ export default function ProductCard({
   const displayName = localized(locale, name, nameEn)
   const [showVariantModal, setShowVariantModal] = useState(false)
   const [activeImageIdx, setActiveImageIdx] = useState(0)
+  const [hovered, setHovered] = useState(false)
+  const cachedRect = useRef<DOMRect | null>(null)
   const { add, status: cartStatus, isPending } = useAddToCart(isLoggedIn, { timeout: 2000 })
 
-  const galleryImages = (imagesProp && imagesProp.length > 0 ? imagesProp : imageUrl ? [imageUrl] : [])
-    .map((url) => optimizeImageUrl(url, 400))
+  const galleryImages = useMemo(
+    () => (imagesProp && imagesProp.length > 0 ? imagesProp : imageUrl ? [imageUrl] : [])
+      .map((url) => optimizeImageUrl(url, 400)),
+    [imagesProp, imageUrl]
+  )
   const hasGallery = galleryImages.length > 1
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!hasGallery) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const idx = Math.min(Math.floor((x / rect.width) * galleryImages.length), galleryImages.length - 1)
+    cachedRect.current = e.currentTarget.getBoundingClientRect()
+    setHovered(true)
+  }, [hasGallery])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!hasGallery || !cachedRect.current) return
+    const x = e.clientX - cachedRect.current.left
+    const idx = Math.min(Math.floor((x / cachedRect.current.width) * galleryImages.length), galleryImages.length - 1)
     setActiveImageIdx(idx)
   }, [hasGallery, galleryImages.length])
 
   const handleMouseLeave = useCallback(() => {
     setActiveImageIdx(0)
+    cachedRect.current = null
   }, [])
   const {
     hasVariants,
@@ -126,31 +137,43 @@ export default function ProductCard({
 
   return (
     <>
-      <div className="group relative flex flex-col h-full rounded-2xl border border-gray-200 bg-white hover:shadow-lg transition-all duration-300">
+      <div className="group relative flex flex-col h-full rounded-2xl border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-300">
         {/* Clickable card link */}
         <Link href={`/products/${slug}`} className="absolute inset-0 z-10" aria-label={displayName} />
 
         {/* Image with hover gallery */}
         <div
           className="relative aspect-[4/3] bg-gray-50 overflow-hidden rounded-t-2xl z-20 cursor-pointer"
+          onMouseEnter={hasGallery ? handleMouseEnter : undefined}
           onMouseMove={hasGallery ? handleMouseMove : undefined}
           onMouseLeave={hasGallery ? handleMouseLeave : undefined}
           onClick={() => router.push(`/products/${slug}`)}
         >
           {galleryImages.length > 0 ? (
             <>
-              {galleryImages.map((src, i) => (
+              {/* First image — always loaded */}
+              <Image
+                src={galleryImages[0]}
+                alt={displayName}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className={`object-cover transition-opacity duration-200 ease-out ${
+                  activeImageIdx === 0 ? "opacity-100" : "opacity-0"
+                }`}
+                priority={priority}
+              />
+              {/* Other images — only mount after first hover */}
+              {hovered && galleryImages.slice(1).map((src, i) => (
                 <Image
                   key={src}
                   src={src}
-                  alt={i === 0 ? displayName : `${displayName} ${i + 1}`}
+                  alt={`${displayName} ${i + 2}`}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className={`object-cover transition-opacity duration-200 ease-out ${
-                    i === activeImageIdx ? "opacity-100" : "opacity-0"
+                    i + 1 === activeImageIdx ? "opacity-100" : "opacity-0"
                   }`}
-                  priority={priority && i === 0}
-                  loading={i === 0 ? undefined : "lazy"}
+                  loading="lazy"
                 />
               ))}
 
@@ -308,4 +331,4 @@ export default function ProductCard({
       )}
     </>
   )
-}
+})
