@@ -15,8 +15,9 @@ import StickyPanel from "./StickyPanel"
 import MessageVendorButton from "./MessageVendorButton"
 import BundleSection from "./BundleSection"
 import TrackRecentlyViewed from "@/components/store/TrackRecentlyViewed"
+import LazySection from "@/components/store/LazySection"
 import { getFlashSaleByProduct, getFlashSalesForProducts } from "@/lib/actions/flashSales"
-import { isWishlisted, getWishlistIds } from "@/lib/actions/wishlist"
+import { isWishlisted } from "@/lib/actions/wishlist"
 import { getBundleItems } from "@/lib/actions/bundles"
 
 /* ─── Cached product fetch (shared by metadata + page) ─── */
@@ -27,7 +28,7 @@ const getProduct = cache((slug: string) =>
     select: {
       id: true, name: true, nameEn: true, description: true, descriptionEn: true,
       price: true, stock: true, status: true, categoryId: true, vendorId: true,
-      images: { orderBy: { order: "asc" }, select: { id: true, url: true, variantId: true } },
+      images: { take: 20, orderBy: { order: "asc" }, select: { id: true, url: true, variantId: true } },
       category: { select: { nameEn: true, name: true, slug: true } },
       vendor: { select: { name: true, slug: true, description: true } },
       variants: { orderBy: { order: "asc" }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
@@ -73,39 +74,26 @@ export default async function ProductPage(props: {
 
   const userId = session?.user?.id ?? null
 
-  // ── Parallel data fetch ──
-  const carouselSelect = {
-    id: true, slug: true, name: true, nameEn: true, price: true, stock: true,
-    createdAt: true, vendorId: true,
-    images: { take: 4, orderBy: { order: "asc" as const }, where: { variantId: null }, select: { url: true } },
-    category: { select: { nameEn: true, name: true } },
-    vendor: { select: { name: true, slug: true } },
-    reviews: { select: { rating: true } },
-    variants: { orderBy: { order: "asc" as const }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },
-  }
-
-  const [similarProducts, vendorProducts, reviews, ratingAgg, wishlisted, activeSale, bundleItems, wishlistIds] = await Promise.all([
-    prisma.product.findMany({ where: { categoryId: product.categoryId, status: "ACTIVE", id: { not: product.id } }, take: 8, orderBy: { createdAt: "desc" }, select: carouselSelect }),
-    prisma.product.findMany({ where: { vendorId: product.vendorId, status: "ACTIVE", id: { not: product.id } }, take: 8, orderBy: { createdAt: "desc" }, select: carouselSelect }),
+  // ── Parallel data fetch (carousels load client-side on scroll) ──
+  const [reviews, ratingAgg, starCountRows, wishlisted, activeSale, bundleItems] = await Promise.all([
     prisma.review.findMany({ where: { productId: product.id }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, rating: true, comment: true, createdAt: true, userId: true, user: { select: { name: true, email: true } } } }),
     prisma.review.aggregate({ where: { productId: product.id }, _avg: { rating: true }, _count: true }),
+    prisma.review.groupBy({ by: ["rating"], where: { productId: product.id }, _count: true }),
     userId ? isWishlisted(product.id) : Promise.resolve(false),
     getFlashSaleByProduct(product.id, { categoryId: product.categoryId, price: product.price }),
     getBundleItems(product.id),
-    getWishlistIds(),
   ])
   const totalReviewCount = ratingAgg._count
 
   const bundleProductIds = bundleItems.map((b) => b.bundleProduct.id)
-  const [carouselFlashSaleMap, bundleFlashSaleMap] = await Promise.all([
-    getFlashSalesForProducts([...similarProducts.map((p) => p.id), ...vendorProducts.map((p) => p.id)]),
-    bundleProductIds.length > 0 ? getFlashSalesForProducts(bundleProductIds) : Promise.resolve(new Map()),
-  ])
+  const bundleFlashSaleMap = bundleProductIds.length > 0
+    ? await getFlashSalesForProducts(bundleProductIds)
+    : new Map()
 
   const avgRating = ratingAgg?._avg?.rating ?? 0
   const existingReview = userId ? reviews.find((r) => r.userId === userId) : undefined
   const starCounts = [0, 0, 0, 0, 0]
-  for (const r of reviews) starCounts[r.rating - 1]++
+  for (const row of starCountRows) starCounts[row.rating - 1] = row._count
 
   const priceNum = product.price
   const productLabels = {
@@ -152,11 +140,13 @@ export default async function ProductPage(props: {
           </div>
 
           {bundleItems.length > 0 && (
+            <LazySection minHeight={150}>
             <BundleSection
               mainProduct={{ id: product.id, name: product.name, nameEn: product.nameEn, price: priceNum, stock: product.stock, slug, image: product.images[0]?.url ?? null, vendorId: product.vendorId, vendorName: product.vendor.name, vendorSlug: product.vendor.slug, variants: product.variants.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })) }}
               mainFlashSale={activeSale}
               bundles={bundleItems.map((b) => ({ id: b.id, discountPercent: b.discountPercent, flashSale: bundleFlashSaleMap.get(b.bundleProduct.id) ?? null, bundleProduct: { id: b.bundleProduct.id, name: b.bundleProduct.name, nameEn: b.bundleProduct.nameEn, price: Number(b.bundleProduct.price), stock: b.bundleProduct.stock, slug: b.bundleProduct.slug, image: b.bundleProduct.images[0]?.url ?? null, vendorId: product.vendorId, vendorName: product.vendor.name, vendorSlug: product.vendor.slug, variants: b.bundleProduct.variants?.map((v) => ({ id: v.id, name: v.name, nameEn: v.nameEn, price: Number(v.price), stock: v.stock })) } }))}
             />
+            </LazySection>
           )}
         </div>
 
@@ -217,6 +207,7 @@ export default async function ProductPage(props: {
       </div>
 
       {/* ─── Description + Reviews ─── */}
+      <LazySection minHeight={300}>
       <div className="mt-12">
         <ProductTabs
           description={product.description}
@@ -230,18 +221,14 @@ export default async function ProductPage(props: {
           existingReview={existingReview ? { rating: existingReview.rating, comment: existingReview.comment } : undefined}
         />
       </div>
+      </LazySection>
 
       {/* ─── Carousels ─── */}
       <ProductCarousels
-        similarProducts={similarProducts}
-        vendorProducts={vendorProducts}
+        productId={product.id}
         categorySlug={product.category.slug}
         vendorName={product.vendor.name}
         vendorSlug={product.vendor.slug}
-        locale={locale}
-        localized={localized}
-        flashSaleMap={carouselFlashSaleMap}
-        wishlistIds={wishlistIds}
       />
 
       {/* ─── Mobile sticky bar ─── */}

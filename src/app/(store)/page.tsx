@@ -12,6 +12,7 @@ import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { getBanners } from "@/lib/actions/banners"
 import { getWishlistIds } from "@/lib/actions/wishlist"
 import { toProductCardProps } from "@/lib/productCard"
+import LazySection from "@/components/store/LazySection"
 
 export default async function HomePage() {
   const now = new Date()
@@ -175,6 +176,7 @@ export default async function HomePage() {
 
         {/* Flash Sales */}
         {flashSales.length > 0 && (
+          <LazySection minHeight={200}>
           <section className="mt-12">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -226,10 +228,12 @@ export default async function HomePage() {
               ))}
             </div>
           </section>
+          </LazySection>
         )}
 
         {/* Featured Products — horizontal scroll with lazy loading */}
         {featuredProducts.length > 0 && (
+          <LazySection minHeight={350}>
           <section className="mt-14">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">New Arrivals</h2>
@@ -247,10 +251,12 @@ export default async function HomePage() {
               )}
             />
           </section>
+          </LazySection>
         )}
 
         {/* Featured Vendors */}
         {vendors.length > 0 && (
+          <LazySection minHeight={250}>
           <section className="mt-14 mb-16">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">{t("featuredVendors")}</h2>
@@ -293,6 +299,7 @@ export default async function HomePage() {
               })}
             </div>
           </section>
+          </LazySection>
         )}
 
         {vendors.length === 0 && categories.length === 0 && featuredProducts.length === 0 && (
