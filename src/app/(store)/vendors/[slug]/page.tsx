@@ -79,7 +79,7 @@ export default async function VendorStorePage(props: {
           price: true,
           stock: true,
           createdAt: true,
-          images: { take: 1, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
+          images: { take: 4, orderBy: { order: "asc" }, where: { variantId: null }, select: { url: true } },
           category: { select: { nameEn: true, name: true } },
           reviews: { select: { rating: true } },
           variants: { orderBy: { order: "asc" }, select: { id: true, name: true, nameEn: true, price: true, stock: true } },

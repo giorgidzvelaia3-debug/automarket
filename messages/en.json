@@ -77,6 +77,15 @@
     "noRecentItems": "No recently viewed items",
     "noRecentHint": "Browse products and they will appear here"
   },
+  "ProductCard": {
+    "addToCart": "Add to Cart",
+    "selectOptions": "Select Options",
+    "added": "Added!",
+    "outOfStock": "Out of Stock",
+    "inStock": "In Stock",
+    "from": "from",
+    "variants": "{count} variants"
+  },
   "Auth": {
     "appName": "AutoMarket",
     "signInTitle": "Sign in to your account",

@@ -18,6 +18,7 @@ export type ProductCardProps = {
   price: number
   stock?: number
   imageUrl?: string | null
+  images?: string[]
   categoryName?: string
   vendorName?: string
   vendorSlug?: string
@@ -107,6 +108,7 @@ export function toProductCardProps(
     price: Number(product.price ?? 0),
     stock: product.stock ?? undefined,
     imageUrl: product.images?.[0]?.url ?? null,
+    images: product.images?.slice(0, 4).map((img) => img.url) ?? [],
     categoryName:
       options.categoryName ??
       (options.locale && product.category

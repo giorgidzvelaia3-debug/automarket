@@ -23,7 +23,7 @@ const wishlistProductSelect = {
   createdAt: true,
   vendorId: true,
   images: {
-    take: 1,
+    take: 4,
     orderBy: { order: "asc" as const },
     where: { variantId: null },
     select: { url: true },

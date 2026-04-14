@@ -23,9 +23,9 @@ export default function LazyProductCard(props: ProductCardProps) {
   }, [isVisible])
 
   return (
-    <div ref={ref} className="min-h-[280px]">
+    <div ref={ref} className="min-h-[280px] h-full">
       {isVisible ? (
-        <div className={`transition-opacity duration-300 ease-in-out ${show ? "opacity-100" : "opacity-0"}`}>
+        <div className={`h-full transition-opacity duration-300 ease-in-out ${show ? "opacity-100" : "opacity-0"}`}>
           <ProductCard {...props} />
         </div>
       ) : (

@@ -7,10 +7,10 @@ import WishlistButton from "./WishlistButton"
 import CompareButton from "./CompareButton"
 import VariantPickerModal from "./VariantPickerModal"
 import { useAddToCart } from "@/lib/useAddToCart"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/authContext"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { localized } from "@/lib/localeName"
 import { optimizeImageUrl } from "@/lib/imageUtils"
 import {
@@ -28,6 +28,7 @@ export default function ProductCard({
   price,
   stock,
   imageUrl,
+  images: imagesProp,
   categoryName,
   vendorName,
   vendorSlug,
@@ -46,10 +47,27 @@ export default function ProductCard({
   const isLoggedIn = isLoggedInProp ?? auth.isLoggedIn
   const router = useRouter()
   const locale = useLocale()
+  const t = useTranslations("ProductCard")
   const displayName = localized(locale, name, nameEn)
   const [showVariantModal, setShowVariantModal] = useState(false)
+  const [activeImageIdx, setActiveImageIdx] = useState(0)
   const { add, status: cartStatus, isPending } = useAddToCart(isLoggedIn, { timeout: 2000 })
-  const optimizedImage = imageUrl ? optimizeImageUrl(imageUrl, 400) : null
+
+  const galleryImages = (imagesProp && imagesProp.length > 0 ? imagesProp : imageUrl ? [imageUrl] : [])
+    .map((url) => optimizeImageUrl(url, 400))
+  const hasGallery = galleryImages.length > 1
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!hasGallery) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const idx = Math.min(Math.floor((x / rect.width) * galleryImages.length), galleryImages.length - 1)
+    setActiveImageIdx(idx)
+  }, [hasGallery, galleryImages.length])
+
+  const handleMouseLeave = useCallback(() => {
+    setActiveImageIdx(0)
+  }, [])
   const {
     hasVariants,
     variantCount,
@@ -72,10 +90,6 @@ export default function ProductCard({
 
     if (hasVariants) {
       if (outOfStock) return
-      if (!isLoggedIn && !canGuestAddToCart) {
-        router.push(`/products/${slug}`)
-        return
-      }
       setShowVariantModal(true)
       return
     }
@@ -102,135 +116,175 @@ export default function ProductCard({
     })
   }
 
+  const formattedPrice = displayPrice % 1 === 0
+    ? `₾${displayPrice.toFixed(0)}`
+    : `₾${displayPrice.toFixed(2)}`
+
+  const formattedOriginalPrice = originalDisplayPrice % 1 === 0
+    ? `₾${originalDisplayPrice.toFixed(0)}`
+    : `₾${originalDisplayPrice.toFixed(2)}`
+
   return (
     <>
-      <div className="group relative rounded-xl border border-gray-200 bg-white hover:border-blue-300 hover:shadow-md transition-all">
+      <div className="group relative flex flex-col h-full rounded-2xl border border-gray-200 bg-white hover:shadow-lg transition-all duration-300">
         {/* Clickable card link */}
         <Link href={`/products/${slug}`} className="absolute inset-0 z-10" aria-label={displayName} />
 
-        {/* Image — 4:3 aspect ratio */}
-        <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden rounded-t-xl">
-          {optimizedImage ? (
-            <Image
-              src={optimizedImage}
-              alt={displayName}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
-              priority={priority}
-            />
+        {/* Image with hover gallery */}
+        <div
+          className="relative aspect-[4/3] bg-gray-50 overflow-hidden rounded-t-2xl z-20 cursor-pointer"
+          onMouseMove={hasGallery ? handleMouseMove : undefined}
+          onMouseLeave={hasGallery ? handleMouseLeave : undefined}
+          onClick={() => router.push(`/products/${slug}`)}
+        >
+          {galleryImages.length > 0 ? (
+            <>
+              {galleryImages.map((src, i) => (
+                <Image
+                  key={src}
+                  src={src}
+                  alt={i === 0 ? displayName : `${displayName} ${i + 1}`}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className={`object-cover transition-opacity duration-200 ease-out ${
+                    i === activeImageIdx ? "opacity-100" : "opacity-0"
+                  }`}
+                  priority={priority && i === 0}
+                  loading={i === 0 ? undefined : "lazy"}
+                />
+              ))}
+
+              {/* Gallery indicator lines */}
+              {hasGallery && (
+                <div className="absolute bottom-0 left-0 right-0 z-10 flex gap-1 px-2 pb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {galleryImages.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-[3px] flex-1 rounded-full transition-colors duration-150 ${
+                        i === activeImageIdx ? "bg-white" : "bg-white/40"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
-            <div className="flex items-center justify-center h-full">
-              <span className="text-gray-300 text-4xl">□</span>
+            <div className="flex items-center justify-center h-full" aria-hidden>
+              <svg className="w-12 h-12 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
             </div>
           )}
 
-          {/* Badges */}
-          <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 pointer-events-none">
+          {/* Badges — pill shape */}
+          <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5 pointer-events-none">
             {flashSale && discountBadge && (
-              <span className="inline-flex items-center rounded-md bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                ⚡ {discountBadge}
+              <span className="inline-flex items-center rounded-full bg-red-600 px-2.5 py-1 text-[11px] font-bold text-white shadow">
+                {discountBadge}
               </span>
             )}
             {isNew && !flashSale && (
-              <span className="inline-flex items-center rounded-md bg-green-500 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
+              <span className="inline-flex items-center rounded-full bg-green-500 px-2.5 py-1 text-[11px] font-bold text-white shadow">
                 NEW
               </span>
             )}
-            {outOfStock && (
-              <span className="inline-flex items-center rounded-md bg-gray-800/80 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm">
-                Out of Stock
-              </span>
-            )}
-            {hasVariants && (
-              <span className="inline-flex items-center rounded-md bg-blue-500/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm">
-                {variantCount} variants
-              </span>
-            )}
           </div>
-        </div>
 
-        {/* Action buttons */}
-        <div className="absolute top-2 right-2 z-20 flex flex-col gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity duration-200 pointer-events-none">
-          <div className="pointer-events-auto">
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              disabled={isPending || outOfStock || (!isLoggedIn && !canGuestAddToCart)}
-              className={`w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm border border-gray-200/60 shadow-sm transition-all disabled:opacity-40 ${
-                cartStatus === "success"
-                  ? "bg-green-500 text-white"
-                  : "bg-white/90 text-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-600"
-              }`}
-              aria-label="Add to cart"
-            >
-              {cartStatus === "success" ? (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.273M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-                </svg>
-              )}
-            </button>
-          </div>
-          <div className="pointer-events-auto">
-            <WishlistButton
-              productId={productId}
-              isWishlisted={isWishlisted ?? wishlist?.isWishlisted ?? false}
-              isLoggedIn={isLoggedIn}
-              size="sm"
-            />
-          </div>
-          <div className="pointer-events-auto">
-            <CompareButton
-              product={{ id: productId, slug, name, nameEn, price, image: imageUrl ?? null }}
-              iconOnly
-            />
+          {/* Hover action buttons — Compare + Wishlist */}
+          <div className="absolute top-2.5 right-2.5 z-20 flex flex-col gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity duration-200 pointer-events-none">
+            <div className="pointer-events-auto">
+              <CompareButton
+                product={{ id: productId, slug, name, nameEn, price, image: imageUrl ?? null }}
+                iconOnly
+              />
+            </div>
+            <div className="pointer-events-auto">
+              <WishlistButton
+                productId={productId}
+                isWishlisted={isWishlisted ?? wishlist?.isWishlisted ?? false}
+                isLoggedIn={isLoggedIn}
+                size="sm"
+              />
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="relative z-10 p-3 pointer-events-none">
-          <p className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
-            {displayName}
-          </p>
+        <div className="relative z-10 flex flex-col flex-1 p-4 pointer-events-none">
+          {/* Top info — grows to fill space */}
+          <div className="flex-1">
+            <p className="text-[11px] text-gray-400 mb-1 min-h-[16px]">{categoryName ?? "\u00A0"}</p>
 
-          {categoryName && (
-            <p className="mt-1 text-[11px] text-blue-500">{categoryName}</p>
-          )}
+            <p className="text-sm font-semibold text-gray-900 truncate group-hover:whitespace-normal group-hover:line-clamp-2 group-hover:text-blue-600 transition-colors">
+              {displayName}
+            </p>
 
-          {avgRating !== undefined && reviewCount !== undefined && reviewCount > 0 && (
-            <div className="mt-1">
-              <StarDisplay rating={avgRating} count={reviewCount} size="sm" />
+            <div className="mt-1.5 h-[18px]">
+              {avgRating !== undefined && reviewCount !== undefined && reviewCount > 0 ? (
+                <StarDisplay rating={avgRating} count={reviewCount} size="sm" />
+              ) : null}
             </div>
-          )}
 
-          <div className="mt-1.5 flex items-end justify-between gap-2">
-            <div className="flex items-baseline gap-1.5 min-w-0">
-              {hasVariants && <span className="text-[10px] text-gray-400">from</span>}
-              <p className={`text-sm font-bold ${isDiscounted ? "text-red-600" : "text-gray-900"}`}>
-                ₾{displayPrice.toFixed(2)}
-              </p>
-              {isDiscounted && (
-                <p className="text-[10px] text-gray-400 line-through">₾{originalDisplayPrice.toFixed(2)}</p>
+            {/* Stock status */}
+            <div className="mt-1.5">
+              {outOfStock ? (
+                <span className="inline-flex items-center gap-1 text-[11px] text-red-500 font-medium">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  {t("outOfStock")}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] text-green-600 font-medium">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  {t("inStock")}
+                </span>
               )}
             </div>
-            {vendorName && vendorSlug ? (
-              <span
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  router.push(`/vendors/${vendorSlug}`)
-                }}
-                className="text-[11px] text-gray-400 hover:text-blue-600 transition-colors truncate cursor-pointer pointer-events-auto"
-              >
-                {vendorName}
-              </span>
-            ) : vendorName ? (
-              <span className="text-[11px] text-gray-400 truncate">{vendorName}</span>
-            ) : null}
+
+            {/* Price */}
+            <div className="mt-2 flex items-baseline gap-1">
+              {hasVariants && <span className="text-[11px] text-gray-400 mr-0.5">{t("from")}</span>}
+              <p className={`text-[15px] font-bold ${isDiscounted ? "text-red-600" : "text-blue-600"}`}>
+                {formattedPrice}
+              </p>
+              {isDiscounted && (
+                <p className="text-[11px] text-gray-400 line-through ml-0.5">{formattedOriginalPrice}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Add to Cart / Select Options button — always at bottom */}
+          <div className="mt-3 pointer-events-auto">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={isPending || outOfStock}
+              className={`w-full py-2 px-4 rounded-lg text-[13px] font-semibold transition-all duration-200 disabled:cursor-not-allowed ${
+                cartStatus === "success"
+                  ? "bg-green-500 text-white"
+                  : outOfStock
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98]"
+              }`}
+            >
+              {cartStatus === "success" ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  {t("added")}
+                </span>
+              ) : hasVariants ? (
+                t("selectOptions")
+              ) : outOfStock ? (
+                t("outOfStock")
+              ) : (
+                t("addToCart")
+              )}
+            </button>
           </div>
         </div>
       </div>

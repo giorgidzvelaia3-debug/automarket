@@ -77,6 +77,15 @@
     "noRecentItems": "ბოლოს ნანახი პროდუქტები არ არის",
     "noRecentHint": "დაათვალიერეთ პროდუქტები და ისინი აქ გამოჩნდება"
   },
+  "ProductCard": {
+    "addToCart": "კალათაში",
+    "selectOptions": "აირჩიე ვარიანტი",
+    "added": "დამატებულია!",
+    "outOfStock": "არ არის მარაგში",
+    "inStock": "მარაგშია",
+    "from": "-დან",
+    "variants": "{count} ვარიანტი"
+  },
   "Auth": {
     "appName": "AutoMarket",
     "signInTitle": "შედით თქვენს ანგარიშში",
