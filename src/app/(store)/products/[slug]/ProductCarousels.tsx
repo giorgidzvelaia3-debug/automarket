@@ -41,54 +41,64 @@ export default function ProductCarousels({
       .catch(() => setData({ similar: [], vendor: [] }))
   }, [isVisible, productId])
 
-  const hasSimilar = data ? data.similar.length > 0 : true
-  const hasVendor = data ? data.vendor.length > 0 : true
+  // Nothing fetched yet — show skeleton placeholders
+  if (!data) {
+    return (
+      <div ref={ref}>
+        <div className="mt-16">
+          <div className="flex items-center justify-between mb-5">
+            <div className="h-6 w-40 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-4 w-20 bg-gray-100 rounded-lg animate-pulse" />
+          </div>
+          <ProductCarouselSkeleton />
+        </div>
+        <div className="mt-12 mb-4">
+          <div className="flex items-center justify-between mb-5">
+            <div className="h-6 w-48 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-4 w-20 bg-gray-100 rounded-lg animate-pulse" />
+          </div>
+          <ProductCarouselSkeleton />
+        </div>
+      </div>
+    )
+  }
+
+  // Data loaded but both empty
+  if (data.similar.length === 0 && data.vendor.length === 0) return null
 
   return (
-    <div ref={ref}>
-      <div
-        className="transition-all duration-500 ease-out"
-        style={{
-          opacity: entered ? 1 : 0,
-          transform: entered ? "none" : "translateY(20px)",
-        }}
-      >
-        {/* Similar Products */}
-        {hasSimilar && (
-          <div className="mt-16">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-gray-900">Similar Products</h2>
-              <Link href={`/categories/${categorySlug}`} className="text-sm text-blue-600 hover:underline">
-                View All →
-              </Link>
-            </div>
-            {data ? (
-              data.similar.length > 0 && <LazyProductCarousel products={data.similar} />
-            ) : (
-              <ProductCarouselSkeleton />
-            )}
+    <div
+      className="transition-all duration-500 ease-out"
+      style={{
+        opacity: entered ? 1 : 0,
+        transform: entered ? "none" : "translateY(20px)",
+      }}
+    >
+      {data.similar.length > 0 && (
+        <div className="mt-16">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-bold text-gray-900">Similar Products</h2>
+            <Link href={`/categories/${categorySlug}`} className="text-sm text-blue-600 hover:underline">
+              View All →
+            </Link>
           </div>
-        )}
+          <LazyProductCarousel products={data.similar} />
+        </div>
+      )}
 
-        {/* Vendor Products */}
-        {hasVendor && (
-          <div className="mt-12 mb-4">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-gray-900">
-                More from {vendorName}
-              </h2>
-              <Link href={`/vendors/${vendorSlug}`} className="text-sm text-blue-600 hover:underline">
-                View Shop →
-              </Link>
-            </div>
-            {data ? (
-              data.vendor.length > 0 && <LazyProductCarousel products={data.vendor} />
-            ) : (
-              <ProductCarouselSkeleton />
-            )}
+      {data.vendor.length > 0 && (
+        <div className="mt-12 mb-4">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-bold text-gray-900">
+              More from {vendorName}
+            </h2>
+            <Link href={`/vendors/${vendorSlug}`} className="text-sm text-blue-600 hover:underline">
+              View Shop →
+            </Link>
           </div>
-        )}
-      </div>
+          <LazyProductCarousel products={data.vendor} />
+        </div>
+      )}
     </div>
   )
 }
