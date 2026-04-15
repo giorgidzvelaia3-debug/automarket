@@ -12,7 +12,13 @@ import { useAuthModal } from "@/lib/authModalContext"
 import { useGuestWishlist } from "@/lib/guestWishlist"
 import { localized } from "@/lib/localeName"
 
-type Category = { id: string; slug: string; nameEn: string; name: string }
+type Category = {
+  id: string
+  slug: string
+  nameEn: string
+  name: string
+  children: { id: string; slug: string; nameEn: string; name: string }[]
+}
 
 type NavbarProps = {
   categories: Category[]
@@ -111,16 +117,31 @@ export default function Navbar({
                 </svg>
               </button>
               {catOpen && (
-                <div className="absolute top-full left-0 mt-1 w-60 bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50">
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-lg z-50 p-4 grid grid-cols-3 gap-x-6 gap-y-4 w-[640px]">
                   {categories.map((cat) => (
-                    <Link
-                      key={cat.id}
-                      href={`/categories/${cat.slug}`}
-                      onClick={() => setCatOpen(false)}
-                      className="flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <span>{localized(locale, cat.name, cat.nameEn)}</span>
-                    </Link>
+                    <div key={cat.id}>
+                      <Link
+                        href={`/categories/${cat.slug}`}
+                        onClick={() => setCatOpen(false)}
+                        className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+                      >
+                        {localized(locale, cat.name, cat.nameEn)}
+                      </Link>
+                      {cat.children.length > 0 && (
+                        <div className="mt-1.5 space-y-0.5">
+                          {cat.children.map((sub) => (
+                            <Link
+                              key={sub.id}
+                              href={`/categories/${sub.slug}`}
+                              onClick={() => setCatOpen(false)}
+                              className="block text-xs text-gray-500 hover:text-blue-600 transition-colors py-0.5"
+                            >
+                              {localized(locale, sub.name, sub.nameEn)}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}

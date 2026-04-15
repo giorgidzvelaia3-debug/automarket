@@ -20,6 +20,136 @@ const categories = [
   { name: "გამონაბოლქვი სისტემა", nameEn: "Exhaust System", slug: "exhaust-system" },
 ]
 
+// ─── Subcategories ──────────────────────────────────────────────────────────
+
+const subcategories: Record<string, { name: string; nameEn: string; slug: string }[]> = {
+  engine: [
+    { name: "ფილტრები", nameEn: "Filters", slug: "engine-filters" },
+    { name: "ქამრები და ჯაჭვები", nameEn: "Belts & Chains", slug: "engine-belts-chains" },
+    { name: "გასკეტები და თავსახურები", nameEn: "Gaskets & Seals", slug: "engine-gaskets-seals" },
+    { name: "ტურბო და კომპრესორი", nameEn: "Turbo & Supercharger", slug: "engine-turbo" },
+    { name: "ძრავის შიდა ნაწილები", nameEn: "Engine Internals", slug: "engine-internals" },
+  ],
+  brakes: [
+    { name: "სამუხრუჭე ხუნდები", nameEn: "Brake Pads", slug: "brake-pads" },
+    { name: "სამუხრუჭე დისკები", nameEn: "Brake Discs", slug: "brake-discs" },
+    { name: "სამუხრუჭე სითხე", nameEn: "Brake Fluid", slug: "brake-fluid" },
+    { name: "სამუხრუჭე ცილინდრები", nameEn: "Brake Calipers", slug: "brake-calipers" },
+  ],
+  tires: [
+    { name: "ზაფხულის საბურავები", nameEn: "Summer Tires", slug: "summer-tires" },
+    { name: "ზამთრის საბურავები", nameEn: "Winter Tires", slug: "winter-tires" },
+    { name: "ყველა სეზონის", nameEn: "All-Season Tires", slug: "all-season-tires" },
+    { name: "დისკები და საბურავლები", nameEn: "Rims & Wheels", slug: "rims-wheels" },
+  ],
+  "oils-and-fluids": [
+    { name: "ძრავის ზეთი", nameEn: "Engine Oil", slug: "engine-oil" },
+    { name: "გადაცემათა ზეთი", nameEn: "Transmission Fluid", slug: "transmission-fluid" },
+    { name: "ანტიფრიზი", nameEn: "Coolant", slug: "coolant" },
+    { name: "ჰიდრავლიკის ზეთი", nameEn: "Power Steering Fluid", slug: "power-steering-fluid" },
+  ],
+  electrical: [
+    { name: "აკუმულატორები", nameEn: "Batteries", slug: "batteries" },
+    { name: "განათება", nameEn: "Lighting", slug: "lighting" },
+    { name: "ანთების სისტემა", nameEn: "Ignition System", slug: "ignition-system" },
+    { name: "გენერატორები და სტარტერები", nameEn: "Alternators & Starters", slug: "alternators-starters" },
+  ],
+  suspension: [
+    { name: "ამორტიზატორები", nameEn: "Shock Absorbers", slug: "shock-absorbers" },
+    { name: "ზამბარები", nameEn: "Springs", slug: "springs" },
+    { name: "ბერკეტები", nameEn: "Control Arms", slug: "control-arms" },
+    { name: "საკისრები", nameEn: "Bearings", slug: "bearings" },
+  ],
+  "body-parts": [
+    { name: "ბამპერები", nameEn: "Bumpers", slug: "bumpers" },
+    { name: "სარკეები", nameEn: "Mirrors", slug: "mirrors" },
+    { name: "ფარები", nameEn: "Headlights", slug: "headlights" },
+    { name: "კაპოტი და ფრთები", nameEn: "Hoods & Fenders", slug: "hoods-fenders" },
+  ],
+  "cooling-system": [
+    { name: "რადიატორები", nameEn: "Radiators", slug: "radiators" },
+    { name: "წყლის ტუმბოები", nameEn: "Water Pumps", slug: "water-pumps" },
+    { name: "თერმოსტატები", nameEn: "Thermostats", slug: "thermostats" },
+    { name: "შლანგები", nameEn: "Hoses", slug: "cooling-hoses" },
+  ],
+  transmission: [
+    { name: "კლაჩი", nameEn: "Clutch", slug: "clutch" },
+    { name: "კოლოფის ნაწილები", nameEn: "Gearbox Parts", slug: "gearbox-parts" },
+    { name: "შარნირები", nameEn: "CV Joints", slug: "cv-joints" },
+    { name: "კარდანი", nameEn: "Driveshaft", slug: "driveshaft" },
+  ],
+  "exhaust-system": [
+    { name: "კატალიზატორები", nameEn: "Catalytic Converters", slug: "catalytic-converters" },
+    { name: "ხმაჩამხშობები", nameEn: "Mufflers", slug: "mufflers" },
+    { name: "გამონაბოლქვის მილები", nameEn: "Exhaust Pipes", slug: "exhaust-pipes" },
+    { name: "EGR სარქველები", nameEn: "EGR Valves", slug: "egr-valves" },
+  ],
+}
+
+// Map product slugs to their best-fit subcategory slug
+const productSubcategoryMap: Record<string, string> = {
+  // Oils
+  "engine-oil-5w30-synthetic": "engine-oil",
+  "engine-oil-10w40-semi": "engine-oil",
+  "engine-oil-0w20-hybrid": "engine-oil",
+  "full-oil-change-kit": "engine-oil",
+  "oil-filter-toyota-lexus": "engine-oil",
+  "transmission-fluid-atf": "transmission-fluid",
+  "radiator-antifreeze-40": "coolant",
+  "green-antifreeze-5l": "coolant",
+  // Brakes
+  "front-brake-pads-toyota": "brake-pads",
+  "rear-brake-pads-honda": "brake-pads",
+  "ceramic-brake-pads-premium": "brake-pads",
+  "front-brake-disc-mercedes": "brake-discs",
+  "brake-fluid-dot4": "brake-fluid",
+  // Tires
+  "winter-tire-205-55-r16": "winter-tires",
+  "summer-tire-225-45-r17": "summer-tires",
+  "all-season-tire-195-65-r15": "all-season-tires",
+  "budget-tire-175-70-r13": "all-season-tires",
+  "suv-tire-235-60-r18": "all-season-tires",
+  // Engine
+  "air-filter-universal": "engine-filters",
+  "timing-belt-kit": "engine-belts-chains",
+  "fan-belt-v-ribbed": "engine-belts-chains",
+  "turbocharger-16-hdi": "engine-turbo",
+  "spark-plug-ngk-iridium": "ignition-system",
+  "crankshaft-pulley-mitsubishi": "engine-internals",
+  // Electrical
+  "car-battery-60ah": "batteries",
+  "led-headlight-h7-kit": "lighting",
+  "xenon-bulb-d2s": "lighting",
+  "pencil-ignition-coil": "ignition-system",
+  "alternator-toyota-camry": "alternators-starters",
+  "starter-motor-sprinter": "alternators-starters",
+  // Suspension
+  "front-shock-absorber-hyundai": "shock-absorbers",
+  "rear-air-shock-absorber": "shock-absorbers",
+  "cv-joint-nissan": "cv-joints",
+  "front-wheel-bearing-subaru": "bearings",
+  "tie-rod-end-toyota": "control-arms",
+  // Body Parts
+  "right-headlight-bmw-e90": "headlights",
+  "front-bumper-kia-sportage": "bumpers",
+  "left-electric-mirror-ford": "mirrors",
+  "trunk-gas-strut": "hoods-fenders",
+  "hood-honda-fit": "hoods-fenders",
+  // Cooling
+  "radiator-honda-crv": "radiators",
+  "water-pump-vw-golf": "water-pumps",
+  "thermostat-82c-universal": "thermostats",
+  "upper-radiator-hose": "cooling-hoses",
+  // Transmission
+  "clutch-kit-opel": "clutch",
+  "universal-joint-cross": "driveshaft",
+  "auto-transmission-filter": "gearbox-parts",
+  // Exhaust
+  "universal-catalytic-converter": "catalytic-converters",
+  "rear-exhaust-pipe": "exhaust-pipes",
+  "egr-valve-20-tdi": "egr-valves",
+}
+
 // ─── Vendors ─────────────────────────────────────────────────────────────────
 
 const vendors = [
@@ -225,7 +355,24 @@ async function main() {
     })
     categoryMap.set(cat.slug, record.id)
   }
-  console.log(`  ✓ ${categories.length} categories`)
+  console.log(`  ✓ ${categories.length} parent categories`)
+
+  // 3b. Subcategories
+  let subCount = 0
+  for (const [parentSlug, subs] of Object.entries(subcategories)) {
+    const parentId = categoryMap.get(parentSlug)
+    if (!parentId) continue
+    for (const sub of subs) {
+      const record = await prisma.category.upsert({
+        where: { slug: sub.slug },
+        update: { name: sub.name, nameEn: sub.nameEn, parentId },
+        create: { ...sub, parentId },
+      })
+      categoryMap.set(sub.slug, record.id)
+      subCount++
+    }
+  }
+  console.log(`  ✓ ${subCount} subcategories`)
 
   // 4. Vendors + Products
   const vendorPassword = await bcrypt.hash("vendor123", 12)
@@ -259,7 +406,9 @@ async function main() {
     // Products
     const products = vendorProducts[vi]
     for (const p of products) {
-      const categoryId = categoryMap.get(p.categorySlug)
+      // Prefer subcategory if a mapping exists, otherwise use parent
+      const subSlug = productSubcategoryMap[p.slug]
+      const categoryId = (subSlug && categoryMap.get(subSlug)) || categoryMap.get(p.categorySlug)
       if (!categoryId) {
         console.warn(`  ⚠ Category not found: ${p.categorySlug}`)
         continue

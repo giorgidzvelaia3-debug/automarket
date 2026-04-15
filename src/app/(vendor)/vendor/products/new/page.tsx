@@ -20,8 +20,15 @@ export default async function NewProductPage(props: {
   if (vendor.status !== "APPROVED") redirect("/vendor/dashboard")
 
   const categories = await prisma.category.findMany({
+    where: { parentId: null },
     orderBy: { nameEn: "asc" },
-    select: { id: true, nameEn: true, name: true },
+    select: {
+      id: true, nameEn: true, name: true,
+      children: {
+        orderBy: { nameEn: "asc" },
+        select: { id: true, nameEn: true, name: true },
+      },
+    },
   })
 
   return (

@@ -1,7 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { getCachedCategories } from "@/lib/cache/categories"
+import { getCachedCategoryTree } from "@/lib/cache/categories"
 import CartMerge from "@/components/store/CartMerge"
 import WishlistMerge from "@/components/store/WishlistMerge"
 import { CompareProvider } from "@/lib/compareContext"
@@ -24,7 +24,7 @@ export default async function StoreLayout({
 }) {
   const [session, categories, locale, t] = await Promise.all([
     auth(),
-    getCachedCategories(),
+    getCachedCategoryTree(),
     getLocale(),
     getTranslations("Nav"),
   ])

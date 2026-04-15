@@ -53,8 +53,15 @@ export default async function EditProductPage(props: {
       },
     }),
     prisma.category.findMany({
+      where: { parentId: null },
       orderBy: { nameEn: "asc" },
-      select: { id: true, nameEn: true, name: true },
+      select: {
+        id: true, nameEn: true, name: true,
+        children: {
+          orderBy: { nameEn: "asc" },
+          select: { id: true, nameEn: true, name: true },
+        },
+      },
     }),
   ])
 

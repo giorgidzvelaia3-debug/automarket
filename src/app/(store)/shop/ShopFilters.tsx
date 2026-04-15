@@ -5,7 +5,8 @@ import { useCallback, useState } from "react"
 import { useLocale } from "next-intl"
 import { localized } from "@/lib/localeName"
 
-type Category = { slug: string; nameEn: string; name: string; count: number }
+type SubCategory = { slug: string; nameEn: string; name: string; count: number }
+type Category = { slug: string; nameEn: string; name: string; count: number; children?: SubCategory[] }
 type Vendor = { slug: string; name: string; count: number }
 
 type Params = {
@@ -117,8 +118,6 @@ export default function ShopFilters({
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [vendorSearch, setVendorSearch] = useState("")
-  const [showAllCats, setShowAllCats] = useState(false)
-
   const selectedCats = (currentParams.category ?? "").split(",").filter(Boolean)
   const selectedVendors = (currentParams.vendor ?? "").split(",").filter(Boolean)
   const rating = currentParams.rating ?? ""
@@ -141,10 +140,30 @@ export default function ShopFilters({
     router.push(buildUrl(overrides))
   }
 
-  function toggleCategory(slug: string) {
-    const next = selectedCats.includes(slug)
-      ? selectedCats.filter((s) => s !== slug)
-      : [...selectedCats, slug]
+  function toggleCategory(slug: string, childSlugs?: string[]) {
+    let next: string[]
+    if (selectedCats.includes(slug)) {
+      // Uncheck: remove this slug + its children
+      const toRemove = new Set([slug, ...(childSlugs ?? [])])
+      next = selectedCats.filter((s) => !toRemove.has(s))
+    } else {
+      // Check: add this slug + its children
+      next = [...new Set([...selectedCats, slug, ...(childSlugs ?? [])])]
+    }
+    update({ category: next.length > 0 ? next.join(",") : undefined })
+  }
+
+  function toggleSubcategory(slug: string, parentSlug: string, siblingsSlugs: string[]) {
+    let next: string[]
+    if (selectedCats.includes(slug)) {
+      // Uncheck subcategory — also uncheck parent
+      next = selectedCats.filter((s) => s !== slug && s !== parentSlug)
+    } else {
+      next = [...selectedCats, slug]
+      // If all siblings now checked, check parent too
+      const allSiblingsChecked = siblingsSlugs.every((s) => s === slug || next.includes(s))
+      if (allSiblingsChecked) next = [...new Set([...next, parentSlug])]
+    }
     update({ category: next.length > 0 ? next.join(",") : undefined })
   }
 
@@ -159,7 +178,11 @@ export default function ShopFilters({
     + (currentParams.minPrice ? 1 : 0) + (currentParams.maxPrice ? 1 : 0)
     + (rating ? 1 : 0) + (inStock ? 1 : 0)
 
-  const visibleCats = showAllCats ? categories : categories.slice(0, 6)
+  // Filter out categories with 0 total products (parent + children)
+  const visibleCats = categories.filter((cat) => cat.count > 0).map((cat) => ({
+    ...cat,
+    children: cat.children?.filter((sub) => sub.count > 0),
+  }))
   const filteredVendors = vendorSearch
     ? vendors.filter((v) => v.name.toLowerCase().includes(vendorSearch.toLowerCase()))
     : vendors
@@ -168,54 +191,89 @@ export default function ShopFilters({
     <div className="space-y-5">
       {/* Categories */}
       <FilterSection title="Categories">
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {visibleCats.map((cat) => {
+            const childSlugs = cat.children?.map((c) => c.slug) ?? []
             const checked = selectedCats.includes(cat.slug)
             return (
-              <label
-                key={cat.slug}
-                className={`flex items-center gap-2.5 cursor-pointer group rounded-lg px-2 py-1.5 transition-colors ${
-                  checked ? "bg-blue-50" : "hover:bg-gray-50"
-                }`}
-              >
-                <span
-                  className={`w-4 h-4 rounded flex items-center justify-center border transition-all shrink-0 ${
-                    checked
-                      ? "bg-blue-600 border-blue-600"
-                      : "border-gray-300 group-hover:border-gray-400"
+              <div key={cat.slug}>
+                <label
+                  className={`flex items-center gap-2.5 cursor-pointer group rounded-lg px-2 py-1.5 transition-colors ${
+                    checked ? "bg-blue-50" : "hover:bg-gray-50"
                   }`}
                 >
-                  {checked && (
-                    <svg className="w-3 h-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggleCategory(cat.slug)}
-                  className="sr-only"
-                />
-                <span className={`text-sm flex-1 transition-colors ${checked ? "text-blue-700 font-medium" : "text-gray-700 group-hover:text-gray-900"}`}>
-                  {localized(locale, cat.name, cat.nameEn)}
-                </span>
-                <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${checked ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"}`}>
-                  {cat.count}
-                </span>
-              </label>
+                  <span
+                    className={`w-4 h-4 rounded flex items-center justify-center border transition-all shrink-0 ${
+                      checked
+                        ? "bg-blue-600 border-blue-600"
+                        : "border-gray-300 group-hover:border-gray-400"
+                    }`}
+                  >
+                    {checked && (
+                      <svg className="w-3 h-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleCategory(cat.slug, childSlugs)}
+                    className="sr-only"
+                  />
+                  <span className={`text-sm flex-1 font-medium transition-colors ${checked ? "text-blue-700" : "text-gray-700 group-hover:text-gray-900"}`}>
+                    {localized(locale, cat.name, cat.nameEn)}
+                  </span>
+                  <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${checked ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"}`}>
+                    {cat.count}
+                  </span>
+                </label>
+                {/* Subcategories */}
+                {cat.children && cat.children.length > 0 && (
+                  <div className="ml-6 space-y-0.5">
+                    {cat.children.map((sub) => {
+                      const subChecked = selectedCats.includes(sub.slug)
+                      return (
+                        <label
+                          key={sub.slug}
+                          className={`flex items-center gap-2.5 cursor-pointer group rounded-lg px-2 py-1 transition-colors ${
+                            subChecked ? "bg-blue-50" : "hover:bg-gray-50"
+                          }`}
+                        >
+                          <span
+                            className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition-all shrink-0 ${
+                              subChecked
+                                ? "bg-blue-600 border-blue-600"
+                                : "border-gray-300 group-hover:border-gray-400"
+                            }`}
+                          >
+                            {subChecked && (
+                              <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={subChecked}
+                            onChange={() => toggleSubcategory(sub.slug, cat.slug, childSlugs)}
+                            className="sr-only"
+                          />
+                          <span className={`text-xs flex-1 transition-colors ${subChecked ? "text-blue-700 font-medium" : "text-gray-500 group-hover:text-gray-700"}`}>
+                            {localized(locale, sub.name, sub.nameEn)}
+                          </span>
+                          <span className={`text-[10px] px-1 py-0.5 rounded-full ${subChecked ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"}`}>
+                            {sub.count}
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             )
           })}
         </div>
-        {categories.length > 6 && (
-          <button
-            type="button"
-            onClick={() => setShowAllCats((v) => !v)}
-            className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium"
-          >
-            {showAllCats ? "Show less" : `Show all (${categories.length})`}
-          </button>
-        )}
       </FilterSection>
 
       {/* Price range */}

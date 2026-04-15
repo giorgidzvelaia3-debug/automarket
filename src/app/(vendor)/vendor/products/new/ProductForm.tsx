@@ -4,7 +4,10 @@ import Link from "next/link"
 import { useState, useRef } from "react"
 import { createProduct } from "@/lib/actions/products"
 
-type Category = { id: string; nameEn: string; name: string }
+type Category = {
+  id: string; nameEn: string; name: string
+  children?: { id: string; nameEn: string; name: string }[]
+}
 
 function toSlug(value: string): string {
   return value
@@ -142,11 +145,21 @@ export default function ProductForm({
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
           >
             <option value="">— Select a category —</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.nameEn} / {cat.name}
-              </option>
-            ))}
+            {categories.map((cat) =>
+              cat.children && cat.children.length > 0 ? (
+                <optgroup key={cat.id} label={`${cat.nameEn} / ${cat.name}`}>
+                  {cat.children.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.nameEn} / {sub.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : (
+                <option key={cat.id} value={cat.id}>
+                  {cat.nameEn} / {cat.name}
+                </option>
+              )
+            )}
           </select>
         </div>
 

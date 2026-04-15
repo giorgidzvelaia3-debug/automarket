@@ -71,12 +71,22 @@ export default async function ShopPage(props: {
   // Fetch categories + vendors with product counts for filters
   const [allCategories, allVendors] = await Promise.all([
     prisma.category.findMany({
+      where: { parentId: null },
       orderBy: { nameEn: "asc" },
       select: {
         slug: true,
         nameEn: true,
         name: true,
         _count: { select: { products: { where: { status: "ACTIVE" } } } },
+        children: {
+          orderBy: { nameEn: "asc" },
+          select: {
+            slug: true,
+            nameEn: true,
+            name: true,
+            _count: { select: { products: { where: { status: "ACTIVE" } } } },
+          },
+        },
       },
     }),
     prisma.vendor.findMany({
@@ -200,7 +210,10 @@ export default async function ShopPage(props: {
 
   // Build name maps for pills
   const categoryNames: Record<string, string> = {}
-  for (const c of allCategories) categoryNames[c.slug] = localized(locale, c.name, c.nameEn)
+  for (const c of allCategories) {
+    categoryNames[c.slug] = localized(locale, c.name, c.nameEn)
+    for (const ch of c.children) categoryNames[ch.slug] = localized(locale, ch.name, ch.nameEn)
+  }
   const vendorNames: Record<string, string> = {}
   for (const v of allVendors) vendorNames[v.slug] = v.name
 
@@ -224,7 +237,11 @@ export default async function ShopPage(props: {
 
       {/* Mobile filters */}
       <ShopFilters
-        categories={allCategories.map((c) => ({ slug: c.slug, nameEn: c.nameEn, name: c.name, count: c._count.products }))}
+        categories={allCategories.map((c) => ({
+          slug: c.slug, nameEn: c.nameEn, name: c.name,
+          count: c._count.products + c.children.reduce((s, ch) => s + ch._count.products, 0),
+          children: c.children.map((ch) => ({ slug: ch.slug, nameEn: ch.nameEn, name: ch.name, count: ch._count.products })),
+        }))}
         vendors={allVendors.map((v) => ({ slug: v.slug, name: v.name, count: v._count.products }))}
         currentParams={params}
         priceRange={priceRange}
@@ -234,7 +251,11 @@ export default async function ShopPage(props: {
       <div className="flex gap-8">
         {/* Desktop sidebar */}
         <ShopFilters
-          categories={allCategories.map((c) => ({ slug: c.slug, nameEn: c.nameEn, name: c.name, count: c._count.products }))}
+          categories={allCategories.map((c) => ({
+            slug: c.slug, nameEn: c.nameEn, name: c.name,
+            count: c._count.products + c.children.reduce((s, ch) => s + ch._count.products, 0),
+            children: c.children.map((ch) => ({ slug: ch.slug, nameEn: ch.nameEn, name: ch.name, count: ch._count.products })),
+          }))}
           vendors={allVendors.map((v) => ({ slug: v.slug, name: v.name, count: v._count.products }))}
           currentParams={params}
           priceRange={priceRange}

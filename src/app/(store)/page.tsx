@@ -18,6 +18,7 @@ export default async function HomePage() {
   const now = new Date()
   const [categories, vendors, featuredProducts, flashSales, t, locale, allBanners, wishlistIds] = await Promise.all([
     prisma.category.findMany({
+      where: { parentId: null },
       orderBy: { nameEn: "asc" },
       select: { id: true, slug: true, nameEn: true, name: true },
     }),
