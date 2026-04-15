@@ -18,8 +18,10 @@ export default async function EditProductPage(props: {
     auth(),
   ])
 
+  if (!session?.user?.id) redirect("/login")
+
   const vendor = await prisma.vendor.findUnique({
-    where: { userId: session!.user.id },
+    where: { userId: session.user.id },
     select: { id: true, status: true },
   })
 
@@ -105,7 +107,15 @@ export default async function EditProductPage(props: {
         productId={product.id}
         initialItems={(await getBundleItems(product.id)).map((b) => ({
           ...b,
-          bundleProduct: { ...b.bundleProduct, price: Number(b.bundleProduct.price) },
+          discountPercent: Number(b.discountPercent),
+          bundleProduct: {
+            ...b.bundleProduct,
+            price: Number(b.bundleProduct.price),
+            variants: b.bundleProduct.variants.map((v) => ({
+              ...v,
+              price: Number(v.price),
+            })),
+          },
         }))}
       />
     </div>

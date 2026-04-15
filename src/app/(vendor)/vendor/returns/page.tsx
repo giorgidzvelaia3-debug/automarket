@@ -25,8 +25,10 @@ export default async function VendorReturnsPage(props: {
   searchParams: Promise<{ status?: string }>
 }) {
   const session = await auth()
+  if (!session?.user?.id) redirect("/login")
+
   const vendor = await prisma.vendor.findUnique({
-    where: { userId: session!.user.id },
+    where: { userId: session.user.id },
     select: { id: true, status: true },
   })
   if (!vendor) redirect("/vendor/register")

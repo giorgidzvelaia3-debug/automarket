@@ -15,9 +15,10 @@ const statusStyles: Record<string, string> = {
 
 export default async function VendorDashboardPage() {
   const session = await auth()
+  if (!session?.user?.id) redirect("/login")
 
   const vendor = await prisma.vendor.findUnique({
-    where: { userId: session!.user.id },
+    where: { userId: session.user.id },
     include: {
       _count: {
         select: {
@@ -100,7 +101,7 @@ export default async function VendorDashboardPage() {
     prisma.message.count({
       where: {
         conversation: { vendorId: vendor.id },
-        senderId: { not: session!.user.id },
+        senderId: { not: session.user.id },
         isRead: false,
       },
     }),

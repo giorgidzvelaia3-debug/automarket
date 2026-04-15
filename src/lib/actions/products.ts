@@ -77,14 +77,14 @@ export async function updateProduct(id: string, formData: FormData) {
   const nameEn        = (formData.get("nameEn") as string).trim()
   const description   = (formData.get("description") as string | null)?.trim() || null
   const descriptionEn = (formData.get("descriptionEn") as string | null)?.trim() || null
-  const price         = (formData.get("price") as string).trim()
+  const price         = (formData.get("price") as string | null)?.trim() || null
   const stock         = parseInt(formData.get("stock") as string, 10) || 0
   const categoryId    = formData.get("categoryId") as string
   const imageUrl      = (formData.get("imageUrl") as string | null)?.trim() || null
 
   await prisma.product.update({
     where: { id },
-    data: { name, nameEn, description, descriptionEn, price, stock, categoryId },
+    data: { name, nameEn, description, descriptionEn, ...(price != null && { price }), stock, categoryId },
   })
 
   if (imageUrl) {
