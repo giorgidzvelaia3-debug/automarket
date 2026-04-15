@@ -113,7 +113,7 @@ export function toProductCardProps(
       options.categoryName ??
       (options.locale && product.category
         ? localized(options.locale, product.category.name, product.category.nameEn)
-        : undefined),
+        : product.category?.nameEn ?? undefined),
     vendorName: options.vendorName ?? product.vendor?.name ?? undefined,
     vendorSlug: options.vendorSlug ?? product.vendor?.slug ?? undefined,
     vendorId: options.vendorId ?? product.vendorId ?? product.vendor?.id ?? undefined,
