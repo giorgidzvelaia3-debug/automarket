@@ -57,7 +57,7 @@ export async function createOrder(formData: FormData) {
     formData.get("city") as string,
     formData.get("phone") as string,
   ]
-    .map((s) => s.trim())
+    .map((s) => (s ?? "").trim())
     .join(", ")
 
   const note = (formData.get("note") as string | null)?.trim() || null
@@ -191,11 +191,11 @@ export async function createOrder(formData: FormData) {
 export async function createGuestOrder(
   formData: FormData
 ): Promise<{ error?: string } | void> {
-  const fullName = (formData.get("fullName") as string)?.trim()
-  const email = (formData.get("email") as string)?.trim()
-  const phone = (formData.get("phone") as string)?.trim()
-  const addressLine = (formData.get("address") as string)?.trim()
-  const city = (formData.get("city") as string)?.trim()
+  const fullName = (formData.get("fullName") as string | null)?.trim()
+  const email = (formData.get("email") as string | null)?.trim()
+  const phone = (formData.get("phone") as string | null)?.trim()
+  const addressLine = (formData.get("address") as string | null)?.trim()
+  const city = (formData.get("city") as string | null)?.trim()
   const note = (formData.get("note") as string | null)?.trim() || null
   const cartItemsRaw = formData.get("cartItems") as string
   const couponCode = (formData.get("couponCode") as string | null)?.trim() || null

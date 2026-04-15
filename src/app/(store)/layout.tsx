@@ -34,10 +34,10 @@ export default async function StoreLayout({
 
   const [cartCount, wishlistCount] = await Promise.all([
     isBuyer
-      ? prisma.cartItem.count({ where: { userId: session!.user!.id } })
+      ? prisma.cartItem.count({ where: { userId: session.user.id } })
       : 0,
     isLoggedIn
-      ? prisma.wishlist.count({ where: { userId: session!.user!.id } })
+      ? prisma.wishlist.count({ where: { userId: session.user.id } })
       : 0,
   ])
 
