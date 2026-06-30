@@ -147,7 +147,7 @@ export default memo(function ProductCard({
 
         {/* Image with hover gallery */}
         <div
-          className="relative aspect-[4/3] bg-gray-50 overflow-hidden rounded-t-2xl z-20 cursor-pointer"
+          className={`relative aspect-[4/3] overflow-hidden rounded-t-2xl z-20 cursor-pointer ${isAggregated ? "bg-white" : "bg-gray-50"}`}
           onMouseEnter={hasGallery ? handleMouseEnter : undefined}
           onMouseMove={hasGallery ? handleMouseMove : undefined}
           onMouseLeave={hasGallery ? handleMouseLeave : undefined}
@@ -161,7 +161,7 @@ export default memo(function ProductCard({
                 alt={displayName}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className={`object-cover transition-opacity duration-200 ease-out ${
+                className={`transition-opacity duration-200 ease-out ${isAggregated ? "object-contain p-3" : "object-cover"} ${
                   activeImageIdx === 0 ? "opacity-100" : "opacity-0"
                 }`}
                 priority={priority}

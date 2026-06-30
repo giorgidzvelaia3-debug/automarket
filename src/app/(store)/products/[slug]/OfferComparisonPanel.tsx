@@ -6,11 +6,10 @@ function fmt(n: number): string {
 
 export default async function OfferComparisonPanel({
   priceFrom,
-  offerCount,
   cheapestUrl,
 }: {
   priceFrom: number
-  offerCount: number
+  offerCount?: number
   cheapestUrl: string | null
 }) {
   const t = await getTranslations("Aggregator")
@@ -20,7 +19,6 @@ export default async function OfferComparisonPanel({
       <div>
         <p className="text-xs text-gray-400">{t("comparePricesHeading")}</p>
         <p className="mt-1 text-2xl font-bold text-gray-900">{t("fromPrice", { price: fmt(priceFrom).replace("₾", "") })}</p>
-        <p className="mt-1 text-sm text-gray-500">{t("availableAt", { count: offerCount })}</p>
       </div>
 
       {cheapestUrl && (
