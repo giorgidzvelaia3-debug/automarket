@@ -178,22 +178,19 @@ export default function AggregatorFilters({
       <button
         type="button"
         onClick={() => router.push(buildUrl({ compare: compareOnly ? undefined : "1" }))}
-        className={`w-full flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
+        className={`w-full flex items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
           compareOnly ? "border-blue-300 bg-blue-50" : "border-gray-200 hover:border-gray-300"
         }`}
       >
         <span
-          className={`mt-0.5 relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
             compareOnly ? "bg-blue-600" : "bg-gray-300"
           }`}
         >
           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${compareOnly ? "translate-x-4" : "translate-x-0.5"}`} />
         </span>
-        <span className="min-w-0">
-          <span className={`block text-sm font-semibold ${compareOnly ? "text-blue-800" : "text-gray-800"}`}>
-            {labels.compareOnly}
-          </span>
-          <span className="block text-[11px] text-gray-500 leading-snug">{labels.compareOnlyHint}</span>
+        <span className={`text-sm font-semibold ${compareOnly ? "text-blue-800" : "text-gray-800"}`}>
+          {labels.compareOnly}
         </span>
       </button>
 

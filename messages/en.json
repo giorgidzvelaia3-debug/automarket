@@ -44,7 +44,7 @@
     "priceHighLow": "Price ↓",
     "newest": "Newest",
     "results": "{count} {count, plural, one {product} other {products}}",
-    "compareOnly": "Compare across stores",
+    "compareOnly": "Matches",
     "compareOnlyHint": "Show only products available in more than one store",
     "compareEmpty": "No products are sold in more than one store yet. Turn this filter off to see all products.",
     "showResults": "Show results"
