@@ -45,7 +45,6 @@
     "newest": "Newest",
     "results": "{count} {count, plural, one {product} other {products}}",
     "compareOnly": "Matches",
-    "compareOnlyHint": "Show only products available in more than one store",
     "compareEmpty": "No products are sold in more than one store yet. Turn this filter off to see all products.",
     "showResults": "Show results"
   },
@@ -58,7 +57,7 @@
     "clearHistory": "Clear",
     "searchFor": "Search for",
     "categories": "Categories",
-    "products": "Products",
+    "products": "{count, plural, =1 {# product} other {# products}}",
     "noResults": "No results found",
     "priceCompare": "Price compare",
     "from": "from",
@@ -67,7 +66,6 @@
     "browseCategories": "Browse Categories",
     "featuredVendors": "Featured Vendors",
     "viewAll": "View all",
-    "products": "{count, plural, =1 {# product} other {# products}}",
     "noContent": "No content yet. Check back soon."
   },
   "Product": {
