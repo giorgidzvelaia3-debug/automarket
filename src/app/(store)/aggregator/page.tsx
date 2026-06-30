@@ -140,7 +140,6 @@ export default async function AggregatorPage(props: {
       min: t("min"),
       max: t("max"),
       compareOnly: t("compareOnly"),
-      compareOnlyHint: t("compareOnlyHint"),
       showResults: t("showResults"),
     },
   }

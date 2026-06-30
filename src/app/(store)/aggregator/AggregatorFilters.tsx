@@ -37,7 +37,6 @@ type Props = {
     min: string
     max: string
     compareOnly: string
-    compareOnlyHint: string
     showResults: string
   }
 }
