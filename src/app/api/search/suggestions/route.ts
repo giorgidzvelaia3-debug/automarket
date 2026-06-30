@@ -4,10 +4,10 @@ import { prisma } from "@/lib/prisma"
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim()
   if (!q || q.length < 2) {
-    return NextResponse.json({ products: [], categories: [] })
+    return NextResponse.json({ products: [], categories: [], aggregated: [] })
   }
 
-  const [products, categories] = await Promise.all([
+  const [products, categories, aggregated] = await Promise.all([
     prisma.product.findMany({
       where: {
         status: "ACTIVE",
@@ -37,6 +37,25 @@ export async function GET(request: NextRequest) {
       take: 3,
       select: { slug: true, name: true, nameEn: true },
     }),
+    prisma.aggregatedProduct.findMany({
+      where: {
+        status: "ACTIVE",
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { nameEn: { contains: q, mode: "insensitive" } },
+          { brand: { contains: q, mode: "insensitive" } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: {
+        slug: true,
+        name: true,
+        nameEn: true,
+        imageUrl: true,
+        offers: { where: { active: true }, select: { price: true } },
+      },
+    }),
   ])
 
   return NextResponse.json(
@@ -54,6 +73,19 @@ export async function GET(request: NextRequest) {
         name: c.name,
         nameEn: c.nameEn,
       })),
+      aggregated: aggregated
+        .map((a) => {
+          const prices = a.offers.map((o) => Number(o.price)).filter((n) => n > 0)
+          return {
+            slug: a.slug,
+            name: a.name,
+            nameEn: a.nameEn,
+            image: a.imageUrl,
+            priceFrom: prices.length ? Math.min(...prices) : 0,
+            offerCount: a.offers.length,
+          }
+        })
+        .filter((a) => a.offerCount > 0),
     },
     { headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" } }
   )

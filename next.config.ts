@@ -32,6 +32,23 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      // Aggregated-product source images (hotlinked, never re-uploaded)
+      {
+        protocol: "https",
+        hostname: "amboli.ge",
+      },
+      {
+        protocol: "https",
+        hostname: "otomotors.shop",
+      },
+      {
+        protocol: "https",
+        hostname: "api.otomotors.shop",
+      },
+      {
+        protocol: "https",
+        hostname: "rpm.ge",
+      },
     ],
     minimumCacheTTL: 2592000, // 30 days
     formats: ["image/avif", "image/webp"],

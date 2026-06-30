@@ -129,6 +129,7 @@ model Category {
   products   Product[]
   flashSales FlashSale[]
   coupons    Coupon[]
+  aggregatedProducts AggregatedProduct[]
 
   @@index([parentId])
 }
@@ -603,4 +604,146 @@ model ProductBundle {
 
   @@unique([productId, bundleProductId])
   @@index([productId])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AGGREGATED PRODUCTS (price comparison — scraped from external retailers)
+// These are NOT orderable through the site. Each canonical AggregatedProduct
+// groups one or more ProductOffers (one per source) and the product page shows
+// a price-comparison table that links out to each source's product page.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+enum SourceKind {
+  STATIC_HTML // server-rendered HTML — fetch + cheerio (e.g. amboli.ge)
+  JS_RENDERED // client-rendered — internal JSON API or headless (e.g. otomotors.shop)
+}
+
+enum SyncRunStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+enum MatchProposalStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+enum OfferAvailability {
+  IN_STOCK
+  OUT_OF_STOCK
+  UNKNOWN
+}
+
+model Source {
+  id           String     @id @default(cuid())
+  name         String
+  slug         String     @unique
+  baseUrl      String
+  kind         SourceKind @default(STATIC_HTML)
+  logo         String?
+  enabled      Boolean    @default(true)
+  config       Json? // { categoryUrls: string[], pagesMax?: number, apiEndpoint?: string, ... }
+  lastSyncedAt DateTime?
+  createdAt    DateTime   @default(now())
+
+  offers   ProductOffer[]
+  syncRuns SyncRun[]
+}
+
+model AggregatedProduct {
+  id            String        @id @default(cuid())
+  categoryId    String
+  name          String
+  nameEn        String
+  slug          String        @unique
+  description   String?
+  descriptionEn String?
+  imageUrl      String? // hotlinked source URL — never re-uploaded
+  brand         String?
+  viscosity     String?
+  volume        String?
+  matchKey      String?
+  status        ProductStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  category       Category        @relation(fields: [categoryId], references: [id])
+  offers         ProductOffer[]
+  matchProposals MatchProposal[]
+
+  @@index([status, categoryId, createdAt])
+  @@index([matchKey])
+}
+
+model ProductOffer {
+  id                  String            @id @default(cuid())
+  sourceId            String
+  aggregatedProductId String? // null until an admin confirms a match
+  rawName             String
+  sourceUrl           String // outbound product page link (also the upsert key)
+  sourceImageUrl      String? // hotlinked source URL — never re-uploaded
+  price               Decimal           @db.Decimal(10, 2)
+  originalPrice       Decimal?          @db.Decimal(10, 2)
+  discountPercent     Int?
+  availability        OfferAvailability @default(UNKNOWN)
+  brand               String?
+  viscosity           String?
+  volume              String?
+  matchKey            String?
+  specs               Json? // key/value characteristics scraped from the product page
+  lastCheckedAt       DateTime          @default(now())
+  firstSeenAt         DateTime          @default(now())
+  missingSince        DateTime? // set when a sync no longer finds it
+  active              Boolean           @default(true)
+  createdAt           DateTime          @default(now())
+
+  source            Source             @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  aggregatedProduct AggregatedProduct? @relation(fields: [aggregatedProductId], references: [id], onDelete: SetNull)
+  matchProposals    MatchProposal[]
+
+  @@unique([sourceId, sourceUrl])
+  @@index([aggregatedProductId])
+  @@index([matchKey])
+  @@index([sourceId, active])
+}
+
+model MatchProposal {
+  id                  String              @id @default(cuid())
+  offerId             String
+  aggregatedProductId String? // merge into existing canonical...
+  proposedName        String? // ...or create a new canonical from this offer
+  proposedNameEn      String?
+  confidence          Int // 0–100 heuristic score
+  matchKey            String
+  status              MatchProposalStatus @default(PENDING)
+  createdAt           DateTime            @default(now())
+  resolvedAt          DateTime?
+
+  offer             ProductOffer       @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  aggregatedProduct AggregatedProduct? @relation(fields: [aggregatedProductId], references: [id], onDelete: Cascade)
+
+  @@index([status, confidence])
+  @@index([offerId])
+}
+
+model SyncRun {
+  id               String        @id @default(cuid())
+  sourceId         String
+  status           SyncRunStatus @default(RUNNING)
+  startedAt        DateTime      @default(now())
+  finishedAt       DateTime?
+  offersSeen       Int           @default(0)
+  offersUpdated    Int           @default(0)
+  offersNew        Int           @default(0)
+  offersMissing    Int           @default(0)
+  proposalsCreated Int           @default(0)
+  error            String?
+  log              Json?
+
+  source Source @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId, startedAt])
 }

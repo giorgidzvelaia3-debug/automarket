@@ -11,7 +11,7 @@ function createPrismaClient() {
 }
 
 // Recreate client if schema changed (new models added)
-if (globalForPrisma.prisma && !("productBundle" in globalForPrisma.prisma)) {
+if (globalForPrisma.prisma && !("aggregatedProduct" in globalForPrisma.prisma)) {
   globalForPrisma.prisma = undefined
 }
 

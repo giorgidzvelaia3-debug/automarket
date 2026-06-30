@@ -11,7 +11,7 @@ import ShopFilters from "./ShopFilters"
 import ShopTopBar from "./ShopTopBar"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { getWishlistIds } from "@/lib/actions/wishlist"
-import { toProductCardProps } from "@/lib/productCard"
+import { toProductCardProps, toAggregatedCardProps } from "@/lib/productCard"
 
 const ALLOWED_PER_PAGE = [12, 24, 48, 96]
 const DEFAULT_PER_PAGE = 12
@@ -226,6 +226,34 @@ export default async function ShopPage(props: {
       reviewCount: product.reviewCount,
     })
   )
+
+  // Aggregated (price-comparison) products. They carry no vendor, so they only
+  // appear when not filtering by vendor; shown on page 1, after orderable items,
+  // respecting the active category + price filters. (They sit outside the
+  // orderable pagination/sort, so they surface once on the first page.)
+  if (page === 1 && view === "grid" && vendorSlugs.length === 0) {
+    const aggregated = await prisma.aggregatedProduct.findMany({
+      where: {
+        status: "ACTIVE",
+        ...(categoryIds && categoryIds.length > 0 ? { categoryId: { in: categoryIds } } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true, slug: true, name: true, nameEn: true, imageUrl: true,
+        offers: {
+          where: { active: true },
+          select: { price: true, source: { select: { name: true, logo: true } } },
+        },
+      },
+    })
+    for (const a of aggregated) {
+      const card = toAggregatedCardProps(a)
+      const lowest = card.price
+      if (minPrice !== undefined && lowest < minPrice) continue
+      if (maxPrice !== undefined && lowest > maxPrice) continue
+      cardProducts.push(card)
+    }
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -42,7 +42,11 @@ export default memo(function ProductCard({
   flashSale,
   priority = false,
   isNew = false,
+  kind = "ORDERABLE",
+  offerCount,
+  offerSources = [],
 }: ProductCardProps) {
+  const isAggregated = kind === "AGGREGATED"
   const auth = useAuth()
   const isLoggedIn = isLoggedInProp ?? auth.isLoggedIn
   const router = useRouter()
@@ -213,23 +217,25 @@ export default memo(function ProductCard({
             )}
           </div>
 
-          {/* Hover action buttons — Compare + Wishlist */}
-          <div className="absolute top-2.5 right-2.5 z-20 flex flex-col gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity duration-200 pointer-events-none">
-            <div className="pointer-events-auto">
-              <CompareButton
-                product={{ id: productId, slug, name, nameEn, price, image: imageUrl ?? null }}
-                iconOnly
-              />
+          {/* Hover action buttons — Compare + Wishlist (orderable only) */}
+          {!isAggregated && (
+            <div className="absolute top-2.5 right-2.5 z-20 flex flex-col gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity duration-200 pointer-events-none">
+              <div className="pointer-events-auto">
+                <CompareButton
+                  product={{ id: productId, slug, name, nameEn, price, image: imageUrl ?? null }}
+                  iconOnly
+                />
+              </div>
+              <div className="pointer-events-auto">
+                <WishlistButton
+                  productId={productId}
+                  isWishlisted={isWishlisted ?? wishlist?.isWishlisted ?? false}
+                  isLoggedIn={isLoggedIn}
+                  size="sm"
+                />
+              </div>
             </div>
-            <div className="pointer-events-auto">
-              <WishlistButton
-                productId={productId}
-                isWishlisted={isWishlisted ?? wishlist?.isWishlisted ?? false}
-                isLoggedIn={isLoggedIn}
-                size="sm"
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Content */}
@@ -248,9 +254,38 @@ export default memo(function ProductCard({
               ) : null}
             </div>
 
-            {/* Stock status */}
+            {/* Stock status (orderable) / store badges (aggregated) */}
             <div className="mt-1.5">
-              {outOfStock ? (
+              {isAggregated ? (
+                offerSources.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {offerSources.map((s, i) => (
+                      <span
+                        key={s.name + i}
+                        title={`${s.name} — ₾${s.price % 1 === 0 ? s.price.toFixed(0) : s.price.toFixed(2)}`}
+                        className={`inline-flex items-center gap-1 rounded-full border pl-1 pr-1.5 py-0.5 text-[10px] font-medium ${
+                          i === 0
+                            ? "border-green-200 bg-green-50 text-green-700"
+                            : "border-gray-200 bg-gray-50 text-gray-600"
+                        }`}
+                      >
+                        {s.logo ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={s.logo} alt={s.name} className="h-3 w-3 rounded-full object-contain" />
+                        ) : (
+                          <span className={`h-1.5 w-1.5 rounded-full ${i === 0 ? "bg-green-500" : "bg-gray-300"}`} />
+                        )}
+                        <span className="max-w-[64px] truncate">{s.name}</span>
+                        <span className="font-bold">₾{s.price % 1 === 0 ? s.price.toFixed(0) : s.price.toFixed(2)}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-gray-500 font-medium">
+                    {t("availableAt", { count: offerCount ?? 0 })}
+                  </span>
+                )
+              ) : outOfStock ? (
                 <span className="inline-flex items-center gap-1 text-[11px] text-red-500 font-medium">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -269,7 +304,7 @@ export default memo(function ProductCard({
 
             {/* Price */}
             <div className="mt-2 flex items-baseline gap-1">
-              {hasVariants && <span className="text-[11px] text-gray-400 mr-0.5">{t("from")}</span>}
+              {(hasVariants || isAggregated) && <span className="text-[11px] text-gray-400 mr-0.5">{t("from")}</span>}
               <p className={`text-[15px] font-bold ${isDiscounted ? "text-red-600" : "text-blue-600"}`}>
                 {formattedPrice}
               </p>
@@ -279,7 +314,18 @@ export default memo(function ProductCard({
             </div>
           </div>
 
-          {/* Add to Cart / Select Options button — always at bottom */}
+          {/* Aggregated: link to comparison detail instead of add-to-cart */}
+          {isAggregated ? (
+            <div className="mt-3 pointer-events-auto">
+              <Link
+                href={`/products/${slug}`}
+                className="block w-full py-2 px-4 rounded-lg text-center text-[13px] font-semibold bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] transition-all duration-200"
+              >
+                {offerCount && offerCount > 1 ? t("comparePrices") : t("viewOnSite")}
+              </Link>
+            </div>
+          ) : (
+          /* Add to Cart / Select Options button — always at bottom */
           <div className="mt-3 pointer-events-auto">
             <button
               type="button"
@@ -309,6 +355,7 @@ export default memo(function ProductCard({
               )}
             </button>
           </div>
+          )}
         </div>
       </div>
 

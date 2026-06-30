@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma"
 import ProductGrid from "@/components/store/ProductGrid"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { getWishlistIds } from "@/lib/actions/wishlist"
-import { toProductCardProps } from "@/lib/productCard"
+import { toProductCardProps, toAggregatedCardProps } from "@/lib/productCard"
 import { getAllDescendantIds } from "@/lib/categoryTree"
 
 export async function generateMetadata(props: {
@@ -89,11 +89,26 @@ export default async function CategoryPage(props: {
     },
   })
 
+  // Aggregated (price-comparison) products in the same category branch.
+  const aggregated = await prisma.aggregatedProduct.findMany({
+    where: { status: "ACTIVE", categoryId: { in: categoryIds } },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true, slug: true, name: true, nameEn: true, imageUrl: true,
+      offers: {
+        where: { active: true },
+        select: { price: true, source: { select: { name: true, logo: true } } },
+      },
+    },
+  })
+
   const [locale, flashSaleMap, wishlistIds] = await Promise.all([
     getLocale(),
     getFlashSalesForProducts(products.map((p) => p.id)),
     getWishlistIds(),
   ])
+
+  const aggregatedCards = aggregated.map((a) => toAggregatedCardProps(a))
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -127,7 +142,8 @@ export default async function CategoryPage(props: {
           {localized(locale, category.name, category.nameEn)}
         </h1>
         <p className="mt-1 text-xs text-gray-400">
-          {products.length} {products.length === 1 ? "product" : "products"}
+          {products.length + aggregatedCards.length}{" "}
+          {products.length + aggregatedCards.length === 1 ? "product" : "products"}
         </p>
       </div>
 
@@ -180,12 +196,15 @@ export default async function CategoryPage(props: {
       )}
 
       <ProductGrid
-        products={products.map((product) =>
-          toProductCardProps(product, {
-            flashSale: flashSaleMap.get(product.id) ?? null,
-            isWishlisted: wishlistIds.has(product.id),
-          })
-        )}
+        products={[
+          ...products.map((product) =>
+            toProductCardProps(product, {
+              flashSale: flashSaleMap.get(product.id) ?? null,
+              isWishlisted: wishlistIds.has(product.id),
+            })
+          ),
+          ...aggregatedCards,
+        ]}
         emptyMessage="No products in this category yet."
       />
     </div>

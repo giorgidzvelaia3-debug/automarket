@@ -33,6 +33,7 @@ type NavbarProps = {
   vendorsLabel: string
   categoriesLabel: string
   signInLabel: string
+  priceCompareLabel: string
 }
 
 export default function Navbar({
@@ -48,6 +49,7 @@ export default function Navbar({
   vendorsLabel,
   categoriesLabel,
   signInLabel,
+  priceCompareLabel,
 }: NavbarProps) {
   const authModal = useAuthModal()
   const guestWishlist = useGuestWishlist()
@@ -157,6 +159,12 @@ export default function Navbar({
               className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
             >
               {vendorsLabel}
+            </Link>
+            <Link
+              href="/aggregator"
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              {priceCompareLabel}
             </Link>
             <Link
               href="/flash-sales"

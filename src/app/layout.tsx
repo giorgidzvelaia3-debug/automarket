@@ -36,8 +36,12 @@ export default async function RootLayout({
     <html
       lang={locale}
       className={`${inter.variable} ${notoGeorgian.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      {/* suppressHydrationWarning: browser extensions (e.g. ColorZilla adds
+          cz-shortcut-listen) mutate <body> before hydration, which would
+          otherwise trigger a false-positive hydration mismatch warning. */}
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>

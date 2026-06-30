@@ -63,6 +63,7 @@ export default async function StoreLayout({
         vendorsLabel={t("vendors")}
         categoriesLabel={t("categories")}
         signInLabel={t("signIn")}
+        priceCompareLabel={t("priceCompare")}
       />
 
       {/* Merge guest cart after login */}

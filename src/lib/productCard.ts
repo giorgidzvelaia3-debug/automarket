@@ -34,6 +34,18 @@ export type ProductCardProps = {
   flashSale?: FlashSaleInfo | null
   priority?: boolean
   isNew?: boolean
+  /** Discriminates orderable vendor products from aggregated price-comparison products. */
+  kind?: "ORDERABLE" | "AGGREGATED"
+  /** AGGREGATED: number of source offers (stores). */
+  offerCount?: number
+  /** AGGREGATED: which stores carry this product and at what price (cheapest first). */
+  offerSources?: OfferSource[]
+}
+
+export type OfferSource = {
+  name: string
+  logo?: string | null
+  price: number
 }
 
 type ProductCardSource = {
@@ -131,6 +143,55 @@ export function toProductCardProps(
     flashSale: options.flashSale ?? null,
     priority: options.priority,
     isNew: isProductNew(product.createdAt),
+  }
+}
+
+type AggregatedCardSource = {
+  id: string
+  slug: string
+  name: string
+  nameEn: string
+  imageUrl?: string | null
+  categoryName?: string
+  offers?: { price: unknown; active?: boolean; source?: { name: string; logo?: string | null } }[]
+}
+
+/**
+ * Build card props for an aggregated (price-comparison) product. The price is
+ * the lowest active offer; the card links out to the comparison detail page and
+ * shows which store(s) carry it and at what price.
+ */
+export function toAggregatedCardProps(
+  product: AggregatedCardSource,
+  options: { categoryName?: string; priority?: boolean } = {}
+): ProductCardProps {
+  const activeOffers = (product.offers ?? []).filter((o) => o.active !== false)
+  const prices = activeOffers.map((o) => Number(o.price ?? 0)).filter((n) => n > 0)
+  const priceFrom = prices.length > 0 ? Math.min(...prices) : 0
+
+  // One badge per store, cheapest first.
+  const offerSources: OfferSource[] = activeOffers
+    .filter((o) => o.source)
+    .map((o) => ({
+      name: o.source!.name,
+      logo: o.source!.logo ?? null,
+      price: Number(o.price ?? 0),
+    }))
+    .sort((a, b) => a.price - b.price)
+
+  return {
+    productId: product.id,
+    slug: product.slug,
+    name: product.name,
+    nameEn: product.nameEn,
+    price: priceFrom,
+    imageUrl: product.imageUrl ?? null,
+    images: product.imageUrl ? [product.imageUrl] : [],
+    categoryName: options.categoryName ?? product.categoryName,
+    kind: "AGGREGATED",
+    offerCount: activeOffers.length,
+    offerSources,
+    priority: options.priority,
   }
 }
 

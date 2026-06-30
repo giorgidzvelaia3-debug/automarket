@@ -16,6 +16,10 @@ const navLinks = [
   { href: "/admin/earnings", label: "Earnings" },
   { href: "/admin/commission", label: "Commission" },
   { href: "/admin/banners", label: "Banners" },
+  { href: "/admin/aggregator/sources", label: "Aggregator · Sources" },
+  { href: "/admin/aggregator/matches", label: "Aggregator · Matches" },
+  { href: "/admin/aggregator/products", label: "Aggregator · Products" },
+  { href: "/admin/aggregator/sync", label: "Aggregator · Sync Log" },
   { href: "/admin/settings", label: "Settings" },
 ]
 

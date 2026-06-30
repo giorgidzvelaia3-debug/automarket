@@ -19,6 +19,7 @@ import LazySection from "@/components/store/LazySection"
 import { getFlashSaleByProduct, getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { isWishlisted } from "@/lib/actions/wishlist"
 import { getBundleItems } from "@/lib/actions/bundles"
+import AggregatedProductView from "./AggregatedProductView"
 
 /* ─── Cached product fetch (shared by metadata + page) ─── */
 
@@ -36,6 +37,28 @@ const getProduct = cache((slug: string) =>
   })
 )
 
+/* ─── Cached aggregated (price-comparison) product fetch ─── */
+
+const getAggregated = cache((slug: string) =>
+  prisma.aggregatedProduct.findUnique({
+    where: { slug },
+    select: {
+      id: true, name: true, nameEn: true, description: true, descriptionEn: true,
+      imageUrl: true, status: true,
+      category: { select: { name: true, nameEn: true, slug: true } },
+      offers: {
+        where: { active: true },
+        orderBy: { price: "asc" },
+        select: {
+          id: true, price: true, originalPrice: true, discountPercent: true,
+          availability: true, sourceUrl: true, lastCheckedAt: true, specs: true,
+          source: { select: { name: true } },
+        },
+      },
+    },
+  })
+)
+
 /* ─── Metadata ──────────────────────────────────────────── */
 
 export async function generateMetadata(props: {
@@ -43,7 +66,17 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   const { slug } = await props.params
   const product = await getProduct(slug)
-  if (!product) return { title: "Product Not Found" }
+  if (!product) {
+    const agg = await getAggregated(slug)
+    if (agg) {
+      return {
+        title: `${agg.nameEn} — Price comparison | AutoMarket`,
+        description: `Compare prices for ${agg.nameEn} across stores on AutoMarket`,
+        ...(agg.imageUrl && { openGraph: { images: [{ url: agg.imageUrl }] } }),
+      }
+    }
+    return { title: "Product Not Found" }
+  }
 
   const title = `${product.nameEn} — ${product.vendor.name} | AutoMarket`
   const description = product.descriptionEn?.slice(0, 160) ??
@@ -67,10 +100,43 @@ export default async function ProductPage(props: {
 
   // ── Product query (cached — shared with generateMetadata) ──
   const rawProduct = await getProduct(slug)
-  const product = rawProduct
-    ? { ...rawProduct, price: Number(rawProduct.price), variants: rawProduct.variants.map((v) => ({ ...v, price: Number(v.price) })) }
-    : null
-  if (!product || product.status !== "ACTIVE") notFound()
+
+  // Not an active orderable product? Try an aggregated (price-comparison) product.
+  if (!rawProduct || rawProduct.status !== "ACTIVE") {
+    const agg = await getAggregated(slug)
+    if (agg && agg.status === "ACTIVE") {
+      return (
+        <AggregatedProductView
+          product={{
+            id: agg.id,
+            name: agg.name,
+            nameEn: agg.nameEn,
+            description: agg.description,
+            descriptionEn: agg.descriptionEn,
+            imageUrl: agg.imageUrl,
+            category: agg.category,
+            specs:
+              (agg.offers.find((o) => o.specs && Object.keys(o.specs).length > 0)?.specs as
+                | Record<string, string>
+                | undefined) ?? null,
+            offers: agg.offers.map((o) => ({
+              id: o.id,
+              sourceName: o.source.name,
+              price: Number(o.price),
+              originalPrice: o.originalPrice !== null ? Number(o.originalPrice) : null,
+              discountPercent: o.discountPercent,
+              availability: o.availability,
+              sourceUrl: o.sourceUrl,
+              lastCheckedAt: o.lastCheckedAt,
+            })),
+          }}
+        />
+      )
+    }
+    notFound()
+  }
+
+  const product = { ...rawProduct, price: Number(rawProduct.price), variants: rawProduct.variants.map((v) => ({ ...v, price: Number(v.price) })) }
 
   const userId = session?.user?.id ?? null
 
@@ -106,13 +172,13 @@ export default async function ProductPage(props: {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 lg:pb-8">
       <TrackRecentlyViewed id={product.id} slug={slug} name={product.name} nameEn={product.nameEn} price={priceNum} image={product.images[0]?.url ?? null} />
 
-      {/* Breadcrumb */}
-      <nav className="mb-6 flex items-center gap-1.5 text-xs text-gray-400">
-        <Link href="/" className="hover:text-gray-600 transition-colors">Home</Link>
-        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-        <Link href={`/categories/${product.category.slug}`} className="hover:text-gray-600 transition-colors">{localized(locale, product.category.name, product.category.nameEn)}</Link>
-        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-        <span className="text-gray-600 truncate max-w-[200px]">{localized(locale, product.name, product.nameEn)}</span>
+      {/* Breadcrumb — single line, horizontal scroll if it overflows */}
+      <nav className="mb-6 flex items-center gap-1.5 text-xs text-gray-400 whitespace-nowrap overflow-x-auto scrollbar-none">
+        <Link href="/" className="shrink-0 hover:text-gray-600 transition-colors">Home</Link>
+        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        <Link href={`/categories/${product.category.slug}`} className="shrink-0 hover:text-gray-600 transition-colors">{localized(locale, product.category.name, product.category.nameEn)}</Link>
+        <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        <span className="shrink-0 text-gray-600">{localized(locale, product.name, product.nameEn)}</span>
       </nav>
 
       {/* ─── 2-column grid ─── */}
