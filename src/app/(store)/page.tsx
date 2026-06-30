@@ -11,13 +11,13 @@ import SideBanner from "@/components/store/SideBanner"
 import { getFlashSalesForProducts } from "@/lib/actions/flashSales"
 import { getBanners } from "@/lib/actions/banners"
 import { getWishlistIds } from "@/lib/actions/wishlist"
-import { toProductCardProps } from "@/lib/productCard"
+import { toProductCardProps, toAggregatedCardProps } from "@/lib/productCard"
 import LazySection from "@/components/store/LazySection"
 import CategoryCarousel from "@/components/store/CategoryCarousel"
 
 export default async function HomePage() {
   const now = new Date()
-  const [categories, vendors, featuredProducts, flashSales, t, locale, allBanners, wishlistIds] = await Promise.all([
+  const [categories, vendors, featuredProducts, flashSales, aggregatedRaw, t, locale, allBanners, wishlistIds] = await Promise.all([
     prisma.category.findMany({
       where: { parentId: null },
       orderBy: { nameEn: "asc" },
@@ -75,6 +75,15 @@ export default async function HomePage() {
         },
       },
     }),
+    prisma.aggregatedProduct.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { createdAt: "desc" },
+      take: 40,
+      select: {
+        id: true, slug: true, name: true, nameEn: true, imageUrl: true,
+        offers: { where: { active: true }, select: { price: true, source: { select: { name: true, logo: true } } } },
+      },
+    }),
     getTranslations("Home"),
     getLocale(),
     getBanners(),
@@ -82,6 +91,13 @@ export default async function HomePage() {
   ])
 
   const flashSaleMap = await getFlashSalesForProducts(featuredProducts.map((p) => p.id))
+
+  // Aggregated (price-comparison) products — feature multi-store ones first.
+  const aggregatedCards = aggregatedRaw
+    .filter((a) => a.offers.length > 0)
+    .sort((a, b) => b.offers.length - a.offers.length)
+    .slice(0, 14)
+    .map((a) => toAggregatedCardProps(a))
 
   const heroBanners = allBanners.filter((b) => b.position === "HERO")
   const sideTopBanners = allBanners.filter((b) => b.position === "SIDE_TOP")
@@ -158,6 +174,26 @@ export default async function HomePage() {
             <h2 className="text-lg font-bold text-gray-900 mb-4">{t("browseCategories")}</h2>
             <CategoryCarousel categories={categories} locale={locale} />
           </section>
+        )}
+
+        {/* Price comparison — aggregated products */}
+        {aggregatedCards.length > 0 && (
+          <LazySection minHeight={350}>
+          <section className="mt-12">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🔍</span>
+                <h2 className="text-lg font-bold text-gray-900">
+                  {locale === "ka" ? "ფასების შედარება" : "Price Comparison"}
+                </h2>
+              </div>
+              <Link href="/aggregator" className="text-sm text-blue-600 hover:underline">
+                {t("viewAll")} →
+              </Link>
+            </div>
+            <LazyProductCarousel products={aggregatedCards} />
+          </section>
+          </LazySection>
         )}
 
         {/* Flash Sales */}

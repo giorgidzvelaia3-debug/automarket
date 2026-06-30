@@ -199,8 +199,7 @@ export default async function ShopPage(props: {
     products = products.slice((page - 1) * perPage, page * perPage)
   }
 
-  const adjustedTotal = minRating ? products.length : totalCount
-  const totalPages = Math.ceil(adjustedTotal / perPage)
+  const orderableTotal = minRating ? products.length : totalCount
 
   const [locale, flashSaleMap, wishlistIds] = await Promise.all([
     getLocale(),
@@ -227,33 +226,45 @@ export default async function ShopPage(props: {
     })
   )
 
-  // Aggregated (price-comparison) products. They carry no vendor, so they only
-  // appear when not filtering by vendor; shown on page 1, after orderable items,
-  // respecting the active category + price filters. (They sit outside the
-  // orderable pagination/sort, so they surface once on the first page.)
-  if (page === 1 && view === "grid" && vendorSlugs.length === 0) {
-    const aggregated = await prisma.aggregatedProduct.findMany({
-      where: {
-        status: "ACTIVE",
-        ...(categoryIds && categoryIds.length > 0 ? { categoryId: { in: categoryIds } } : {}),
-      },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true, slug: true, name: true, nameEn: true, imageUrl: true,
-        offers: {
-          where: { active: true },
-          select: { price: true, source: { select: { name: true, logo: true } } },
-        },
-      },
-    })
-    for (const a of aggregated) {
-      const card = toAggregatedCardProps(a)
-      const lowest = card.price
-      if (minPrice !== undefined && lowest < minPrice) continue
-      if (maxPrice !== undefined && lowest > maxPrice) continue
-      cardProducts.push(card)
+  // Aggregated (price-comparison) products, paginated alongside orderable items:
+  // orderable occupy the first `orderableTotal` slots, aggregated fill the rest.
+  // Skipped when filtering by vendor (aggregated have none) or by rating.
+  let aggCount = 0
+  if (view === "grid" && vendorSlugs.length === 0 && !minRating) {
+    const aggWhere = {
+      status: "ACTIVE" as const,
+      ...(categoryIds && categoryIds.length > 0 ? { categoryId: { in: categoryIds } } : {}),
+    }
+    const aggSelect = {
+      id: true, slug: true, name: true, nameEn: true, imageUrl: true,
+      offers: { where: { active: true }, select: { price: true, source: { select: { name: true, logo: true } } } },
+    }
+    const start = (page - 1) * perPage
+    const priceFiltered = minPrice !== undefined || maxPrice !== undefined
+
+    if (!priceFiltered) {
+      aggCount = await prisma.aggregatedProduct.count({ where: aggWhere })
+      const aggSkip = Math.max(0, start - orderableTotal)
+      const aggTake = Math.max(0, Math.min(start + perPage, orderableTotal + aggCount) - Math.max(start, orderableTotal))
+      if (aggTake > 0) {
+        const aggregated = await prisma.aggregatedProduct.findMany({
+          where: aggWhere, orderBy: { createdAt: "desc" }, skip: aggSkip, take: aggTake, select: aggSelect,
+        })
+        cardProducts.push(...aggregated.map((a) => toAggregatedCardProps(a)))
+      }
+    } else {
+      const all = await prisma.aggregatedProduct.findMany({ where: aggWhere, orderBy: { createdAt: "desc" }, select: aggSelect })
+      const filtered = all
+        .map((a) => toAggregatedCardProps(a))
+        .filter((c) => (minPrice === undefined || c.price >= minPrice) && (maxPrice === undefined || c.price <= maxPrice))
+      aggCount = filtered.length
+      const aggSkip = Math.max(0, start - orderableTotal)
+      cardProducts.push(...filtered.slice(aggSkip, aggSkip + (perPage - cardProducts.length)))
     }
   }
+
+  const adjustedTotal = orderableTotal + aggCount
+  const totalPages = Math.ceil(adjustedTotal / perPage)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
